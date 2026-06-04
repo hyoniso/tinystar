@@ -1,0 +1,2435 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>티니스타와 반짝 보석 왕국</title>
+  
+  <!-- Pretendard 폰트 적용 (아이와 부모 모두에게 깔끔하고 완벽한 가독성 제공) -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+  
+  <!-- Tailwind CSS 로드 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    body {
+      font-family: 'Pretendard', -apple-system, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      background: #fdf2f8; /* 따뜻하고 사랑스러운 기본 베이비 핑크 */
+      overflow: hidden;
+    }
+    
+    /* 눈부신 파스텔 그라데이션 레이어 */
+    .magic-gradient {
+      background: linear-gradient(135deg, #fbcfe8 0%, #f472b6 30%, #e9d5ff 70%, #ccfbf1 100%);
+    }
+
+    /* 7세 맞춤형 통통 튀는 모션 */
+    .btn-bounce {
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .btn-bounce:active {
+      transform: scale(0.92);
+    }
+    .btn-bounce:hover {
+      transform: scale(1.05);
+    }
+
+    /* 반짝임 애니메이션 */
+    @keyframes sparkle {
+      0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.9; filter: drop-shadow(0 0 4px #fff); }
+      50% { transform: scale(1.15) rotate(8deg); opacity: 1; filter: drop-shadow(0 0 12px #fef08a); }
+    }
+    .sparkle-element {
+      animation: sparkle 2.2s infinite ease-in-out;
+    }
+
+    /* 요정 및 구름 둥실둥실 모션 */
+    @keyframes floaty {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(2deg); }
+    }
+    .floaty-element {
+      animation: floaty 3s infinite ease-in-out;
+    }
+
+    /* 날개 짓 애니메이션 */
+    @keyframes wing-flap {
+      0%, 100% { transform: rotateY(0deg); }
+      50% { transform: rotateY(60deg); }
+    }
+    .wing-animation {
+      animation: wing-flap 0.6s infinite ease-in-out;
+      transform-origin: center left;
+    }
+
+    /* 실패 흔들림 효과 */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    .animate-shake {
+      animation: shake 0.3s ease-in-out;
+    }
+
+    /* 카드 뒤집기 레이아웃 3D */
+    .flip-card {
+      perspective: 1000px;
+    }
+    .flip-card-inner {
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+    }
+    .flip-card.flipped .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+    .flip-card-front, .flip-card-back {
+      backface-visibility: hidden;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .flip-card-back {
+      transform: rotateY(180deg);
+    }
+
+    /* 드래그 가능 아이템 스타일 */
+    .draggable-item {
+      cursor: grab;
+      touch-action: none;
+    }
+    .draggable-item:active {
+      cursor: grabbing;
+    }
+  </style>
+</head>
+<body class="w-screen h-screen flex justify-center items-center p-2 sm:p-4 select-none font-sans">
+
+  <!-- ================= 메인 모바일-프렌들리 디바이스 프레임 ================= -->
+  <div id="game-container" class="relative w-full max-w-md h-[95vh] sm:h-[90vh] max-h-[820px] rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] overflow-hidden border-[10px] border-pink-200 flex flex-col magic-gradient transition-all duration-1000">
+    
+    <!-- 상단 상태바 (시작 스크린 제외 노출) -->
+    <div id="top-bar" class="hidden justify-between items-center px-4 py-2.5 bg-white/75 backdrop-blur-md border-b-4 border-pink-100 z-30">
+      <button onclick="goToHome()" class="btn-bounce bg-pink-500 hover:bg-pink-600 text-white font-extrabold px-3.5 py-1.5 rounded-full shadow-md text-sm">
+        🏠 처음으로
+      </button>
+      
+      <!-- 별빛 보상 카운터 -->
+      <div class="flex items-center gap-1 bg-yellow-100 px-3 py-1 rounded-full border-2 border-yellow-300">
+        <span class="sparkle-element text-lg">⭐</span>
+        <span id="global-star-count" class="text-lg font-black text-yellow-700">0</span>
+      </div>
+
+      <div class="flex items-center gap-1.5">
+        <button onclick="openDecoRoom()" class="btn-bounce bg-purple-100 border-2 border-purple-300 px-2 py-1 rounded-full text-xs font-black text-purple-700">
+          🎨 꾸미기
+        </button>
+        <button id="sound-btn" onclick="toggleSound()" class="btn-bounce bg-blue-100 border-2 border-blue-300 p-1.5 rounded-full text-sm shadow-sm">
+          🔊
+        </button>
+      </div>
+    </div>
+
+    <!-- 내부 뷰포트 컨테이너 -->
+    <div class="flex-1 relative overflow-hidden flex flex-col justify-between p-4">
+
+      <!-- ================= SCREEN: START (시작 화면) ================= -->
+      <div id="screen-start" class="flex flex-col justify-between items-center h-full py-2 text-center z-10">
+        <div class="mt-2">
+          <div class="flex justify-center gap-1.5 mb-1.5">
+            <span class="text-3xl sparkle-element">⭐</span>
+            <span class="text-2xl sparkle-element" style="animation-delay: 0.4s;">✨</span>
+            <span class="text-3xl sparkle-element" style="animation-delay: 0.8s;">💖</span>
+          </div>
+          <h1 class="text-4.5xl sm:text-5xl font-black text-pink-600 drop-shadow-[0_2px_2px_rgba(255,255,255,0.9)] tracking-wide">
+            티니스타와
+          </h1>
+          <h2 class="text-3.5xl sm:text-4xl font-black text-purple-600 mt-1 drop-shadow-[0_2px_2px_rgba(255,255,255,0.9)]">
+            반짝 보석 왕국
+          </h2>
+          <p class="text-pink-500 font-extrabold mt-1 text-base sm:text-lg">
+            로제 공주님! 무지개 별빛 왕국을 구해줘요! 💕
+          </p>
+        </div>
+
+        <!-- 3D 느낌 오리지널 캐릭터 구현 (로제 공주 단독 배치) -->
+        <div class="relative w-44 h-44 my-2 flex justify-center items-center">
+          <div class="absolute w-36 h-36 rounded-full bg-gradient-to-tr from-rose-300 to-yellow-200 animate-pulse opacity-75"></div>
+          
+          <!-- 로제 공주 (CSS 전용 아바타 - 얼굴, 왕관, 드레스, 눈빛, 볼터치, 표정 변화 완벽 구현) -->
+          <div id="character-rose-main" class="character-rose-css relative w-32 h-32 flex flex-col items-center justify-center floaty-element">
+            <!-- 머리 뒤쪽 -->
+            <div class="absolute w-24 h-24 bg-pink-400 rounded-full top-2 shadow-sm"></div>
+            <!-- 양갈래 만두머리 귀 장식 -->
+            <div class="absolute w-8 h-8 bg-pink-500 rounded-full top-0 left-2 shadow-md border-2 border-white"></div>
+            <div class="absolute w-8 h-8 bg-pink-500 rounded-full top-0 right-2 shadow-md border-2 border-white"></div>
+            <!-- 얼굴 본체 -->
+            <div class="absolute w-20 h-20 bg-amber-100 rounded-full top-5 shadow-inner border-2 border-pink-100 flex flex-col items-center justify-center">
+              <!-- 눈썹 -->
+              <div class="flex justify-between w-14 px-1 mt-3">
+                <div class="w-4 h-1 bg-pink-600 rounded-full transform -rotate-12 transition-transform duration-300" id="rose-eyebrow-left"></div>
+                <div class="w-4 h-1 bg-pink-600 rounded-full transform rotate-12 transition-transform duration-300" id="rose-eyebrow-right"></div>
+              </div>
+              <!-- 눈동자 -->
+              <div class="flex justify-between w-12 px-1 mt-1">
+                <div class="w-4 h-5 bg-purple-900 rounded-full flex items-start justify-center p-0.5 border border-purple-400">
+                  <div class="w-1.5 h-1.5 bg-white rounded-full sparkle-element"></div>
+                </div>
+                <div class="w-4 h-5 bg-purple-900 rounded-full flex items-start justify-center p-0.5 border border-purple-400">
+                  <div class="w-1.5 h-1.5 bg-white rounded-full sparkle-element"></div>
+                </div>
+              </div>
+              <!-- 볼그레 볼터치 -->
+              <div class="flex justify-between w-16 px-1 -mt-1.5">
+                <div class="w-3.5 h-2 bg-pink-400 rounded-full opacity-80 blur-[0.5px]"></div>
+                <div class="w-3.5 h-2 bg-pink-400 rounded-full opacity-80 blur-[0.5px]"></div>
+              </div>
+              <!-- 미소 띤 입 -->
+              <div id="rose-mouth" class="w-4 h-2 border-b-4 border-purple-700 rounded-b-full mt-1.5 transition-all duration-300"></div>
+            </div>
+            <!-- 앞머리 뱅 스타일 -->
+            <div class="absolute w-18 h-7 bg-pink-400 rounded-t-full top-4 border-b border-pink-300"></div>
+            <!-- 예쁜 미니 황금 왕관 -->
+            <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 text-3xl animate-bounce">👑</div>
+            <!-- 공주 마법 드레스 바디 -->
+            <div class="absolute bottom-[-10px] w-24 h-12 bg-gradient-to-b from-rose-400 via-pink-500 to-pink-600 rounded-t-[2rem] border-t-2 border-white shadow-lg"></div>
+            <!-- 마법봉 -->
+            <div class="absolute right-[-4px] bottom-2 text-2xl sparkle-element">🪄</div>
+          </div>
+        </div>
+
+        <!-- 3개 난이도 선택 제어기 -->
+        <div class="w-full max-w-xs bg-white/70 backdrop-blur-sm p-3 rounded-2xl border-2 border-pink-100 shadow-sm">
+          <p class="text-sm font-black text-pink-600 mb-1.5">⭐ 마법 난이도를 정해봐요 ⭐</p>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button id="diff-easy" onclick="setDifficulty('easy')" class="py-1.5 rounded-xl font-black transition-all border-2 border-green-300 bg-green-100 text-green-700 text-sm">쉬움 🌱</button>
+            <button id="diff-normal" onclick="setDifficulty('normal')" class="py-1.5 rounded-xl font-black transition-all border-2 border-transparent bg-white text-gray-500 text-sm">보통 ✨</button>
+            <button id="diff-challenge" onclick="setDifficulty('challenge')" class="py-1.5 rounded-xl font-black transition-all border-2 border-transparent bg-white text-gray-500 text-sm">도전 🔥</button>
+          </div>
+        </div>
+
+        <!-- 메인 제어 액션 패널 -->
+        <div class="w-full flex flex-col gap-2 items-center max-w-xs mb-1">
+          <button onclick="startGame()" class="btn-bounce w-full py-4 bg-gradient-to-r from-pink-500 to-rose-400 text-white font-black text-2xl rounded-2xl shadow-[0_5px_0_#db2777] border-2 border-pink-300">
+            🌟 모험 출발하기 🌟
+          </button>
+          
+          <div class="flex gap-2 w-full text-sm">
+            <button onclick="showScreen('screen-guide')" class="btn-bounce flex-1 py-2 bg-yellow-300 text-yellow-800 font-black rounded-xl border border-yellow-200">
+              💡 게임 방법
+            </button>
+            <button onclick="openStickerBook()" class="btn-bounce flex-1 py-2 bg-purple-300 text-purple-800 font-black rounded-xl border border-purple-200">
+              🏅 도감·스티커북
+            </button>
+          </div>
+
+          <button onclick="openDailyQuest()" class="btn-bounce w-full py-1.5 bg-blue-100 text-blue-800 font-bold rounded-xl text-xs border border-blue-200">
+            📅 오늘의 마법 퀘스트 보러가기 🎁
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= SCREEN: GUIDE (게임 방법) ================= -->
+      <div id="screen-guide" class="hidden flex-col justify-between h-full py-2 z-10">
+        <div>
+          <h2 class="text-3xl font-black text-purple-600 text-center my-1.5">💡 마법 모험 교과서 💡</h2>
+          <div class="bg-white/80 backdrop-blur-md rounded-2xl p-4 border-2 border-pink-100 space-y-3.5 max-h-[50vh] overflow-y-auto text-sm sm:text-base">
+            <div class="flex items-center gap-2">
+              <span class="text-2xl bg-yellow-100 p-1 rounded-full">🔍</span>
+              <p class="text-gray-700 font-extrabold text-sm"><strong class="text-pink-600">관찰놀이:</strong> 꼭꼭 숨어있는 아기별을 찾아봐요!</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-2xl bg-pink-100 p-1 rounded-full">🎨</span>
+              <p class="text-gray-700 font-extrabold text-sm"><strong class="text-pink-600">분류&드래그:</strong> 모양과 색상을 구분하여 올바른 바구니에 드래그해 넣어요!</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-2xl bg-purple-100 p-1 rounded-full">🎴</span>
+              <p class="text-gray-700 font-extrabold text-sm"><strong class="text-pink-600">기억놀이:</strong> 카드를 뒤집어 똑같이 닮은 짝꿍 요정을 기억해요!</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-2xl bg-teal-100 p-1 rounded-full">🧪</span>
+              <p class="text-gray-700 font-extrabold text-sm"><strong class="text-pink-600">조합과 추론:</strong> 가마솥에 레시피 물약 약초들을 올려 조합해요!</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-2xl bg-rose-100 p-1 rounded-full">💖</span>
+              <p class="text-gray-700 font-extrabold text-sm">도중에 막히면 요정 <strong class="text-rose-500">힌트 버튼</strong>을 언제든지 탭하세요!</p>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="showScreen('screen-start')" class="btn-bounce w-full py-3.5 bg-pink-400 text-white font-black text-xl rounded-2xl shadow-md">
+          준비됐어요! 출발! 💕
+        </button>
+      </div>
+
+      <!-- ================= SCREEN: MAP (15레벨 선택 맵) ================= -->
+      <div id="screen-map" class="hidden flex-col justify-between h-full z-10">
+        <div class="text-center my-1">
+          <h2 class="text-2xl font-black text-pink-600">어디로 마법 모험을 갈까요? ✨</h2>
+          <p class="text-xs text-gray-500 font-black">15개의 보석 기둥을 수리하고 은하수 축제를 열어요!</p>
+        </div>
+
+        <div id="map-scroll-area" class="flex-1 flex flex-col gap-2 my-2 overflow-y-auto px-1 max-h-[58vh]">
+          <!-- JS 동적 생성 -->
+        </div>
+
+        <div class="flex gap-2">
+          <button onclick="openDecoRoom()" class="btn-bounce flex-1 py-3 bg-purple-500 text-white font-bold rounded-xl shadow-md text-sm">
+            🎨 왕국 꾸미기 방
+          </button>
+          <button onclick="goToHome()" class="btn-bounce flex-1 py-3 bg-pink-400 text-white font-bold rounded-xl shadow-md text-sm">
+            메인 화면으로
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= SCREEN: GAMEPLAY (플레이 필드) ================= -->
+      <div id="screen-gameplay" class="hidden flex-col justify-between h-full z-10">
+        
+        <!-- 미션 상태 헤더 -->
+        <div class="flex justify-between items-center bg-white/85 backdrop-blur-sm p-3 rounded-2xl border border-pink-100 shadow-sm text-sm">
+          <div>
+            <span id="current-lv-tag" class="text-[10px] bg-pink-500 text-white font-black px-2 py-0.5 rounded-full">레벨 1</span>
+            <h3 id="current-map-title" class="font-black text-gray-800 text-base">별빛 정원</h3>
+          </div>
+          
+          <div class="text-right">
+            <div class="flex gap-1 items-center justify-end mb-1">
+              <span id="substage-dot-1" class="w-3 h-3 rounded-full bg-gray-300 border border-gray-400"></span>
+              <span id="substage-dot-2" class="w-3 h-3 rounded-full bg-gray-300 border border-gray-400"></span>
+              <span id="substage-dot-3" class="w-3 h-3 rounded-full bg-gray-300 border border-gray-400"></span>
+              <span class="text-xs font-bold text-pink-600 ml-1">단계 완료</span>
+            </div>
+            <p id="mission-progress-label" class="text-xs font-bold text-gray-600">0 / 5</p>
+          </div>
+        </div>
+
+        <!-- 대화형 도우미 박스 (오리지널 일러스트 렌더러 탑재) -->
+        <div class="my-1 bg-pink-50/95 rounded-2xl p-2.5 border border-pink-100 flex justify-between items-center gap-2">
+          <div class="flex items-center gap-2">
+            <!-- 요정 CSS 캐릭터 전용 컨테이너 (이모지가 아니라 날개짓과 눈망울이 있는 렌더러) -->
+            <div class="relative w-14 h-14 bg-gradient-to-tr from-purple-100 to-pink-100 rounded-full border border-purple-200 flex justify-center items-center shrink-0">
+              <div id="fairy-wing-l" class="absolute w-4 h-8 bg-sky-200 opacity-80 rounded-full -left-1 top-2 wing-animation"></div>
+              <div id="fairy-wing-r" class="absolute w-4 h-8 bg-sky-200 opacity-80 rounded-full -right-1 top-2 wing-animation scale-x-[-1]" style="animation-delay: 0.3s;"></div>
+              
+              <div class="relative w-10 h-10 bg-pink-100 rounded-full flex flex-col items-center justify-center border border-white">
+                <div class="flex gap-2.5 mt-2">
+                  <div class="w-1.5 h-2 bg-purple-950 rounded-full"></div>
+                  <div class="w-1.5 h-2 bg-purple-950 rounded-full"></div>
+                </div>
+                <div class="flex justify-between w-8 px-1 -mt-1">
+                  <div class="w-2 h-1 bg-pink-400 rounded-full"></div>
+                  <div class="w-2 h-1 bg-pink-400 rounded-full"></div>
+                </div>
+                <div id="fairy-mouth" class="w-2.5 h-1 border-b-2 border-slate-700 rounded-b-full mt-1.5"></div>
+              </div>
+            </div>
+
+            <div class="text-left leading-tight">
+              <p id="helper-name" class="text-[11px] text-pink-600 font-black">티니키타</p>
+              <p id="helper-bubble" class="text-xs text-gray-700 font-extrabold max-w-[210px] line-clamp-2">꼭꼭 숨은 요정별을 터치해주세요!</p>
+            </div>
+          </div>
+          <button onclick="triggerFairyHint()" class="btn-bounce bg-rose-400 text-white font-bold px-2.5 py-2 rounded-xl text-xs flex items-center gap-1 shrink-0">
+            💖 힌트
+          </button>
+        </div>
+
+        <!-- ★ 다이내믹 레벨 컴포넌트 캔버스 주입처 ★ -->
+        <div id="game-playground" class="flex-1 relative bg-white/40 backdrop-blur-sm rounded-3xl border-4 border-pink-100 overflow-hidden shadow-inner flex justify-center items-center p-2 min-h-[300px]">
+          <!-- 수준 높은 다양한 게임 UI 요소들이 JS 동적으로 렌더링됨 -->
+        </div>
+
+        <div class="flex gap-2 mt-2">
+          <button onclick="backToMap()" class="btn-bounce flex-1 py-2.5 bg-yellow-50 border border-yellow-300 text-yellow-800 font-black text-sm rounded-xl">
+            🗺️ 지도로 돌아가기
+          </button>
+          <button onclick="resetCurrentLevel()" class="btn-bounce flex-1 py-2.5 bg-rose-50 border border-rose-200 text-rose-800 font-black text-sm rounded-xl">
+            🔄 단계 다시하기
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= SCREEN: SUCCESS (스테이지 클리어 완료) ================= -->
+      <div id="screen-success" class="hidden flex-col justify-between items-center h-full py-4 text-center z-20">
+        <div class="mt-2">
+          <!-- 성공 피드백 캐릭터 댄스 연출 -->
+          <div class="relative w-28 h-28 mx-auto flex items-center justify-center">
+            <div class="absolute w-24 h-24 rounded-full bg-yellow-200 animate-ping opacity-50"></div>
+            <!-- 성공 상태의 미소짓는 로제 공주 CSS 캐릭터 -->
+            <div class="relative w-24 h-24 flex flex-col items-center justify-center">
+              <div class="absolute w-18 h-18 bg-pink-400 rounded-full top-1"></div>
+              <div class="absolute w-16 h-16 bg-amber-100 rounded-full top-3 flex flex-col items-center justify-center">
+                <div class="flex gap-3 mt-2">
+                  <div class="w-3 h-2 border-t-2 border-slate-800 rounded-t-full"></div> <!-- 감은 웃는 눈 -->
+                  <div class="w-3 h-2 border-t-2 border-slate-800 rounded-t-full"></div>
+                </div>
+                <div class="w-4 h-3 bg-rose-500 rounded-t-full mt-1.5 animate-bounce"></div> <!-- 활짝 웃는 큰 입 -->
+              </div>
+              <div class="absolute -top-3 text-2xl animate-bounce">👑</div>
+            </div>
+          </div>
+          <h2 class="text-3xl font-black text-pink-600 mt-2 drop-shadow-md">
+            완벽하게 대성공!
+          </h2>
+          <p id="success-cheer-message" class="text-base text-purple-600 font-black mt-1 max-w-xs mx-auto">
+            "우리 공주님이 정말 똑똑하고 예쁘게 마법을 해내셨어요!"
+          </p>
+        </div>
+
+        <!-- 완료 배지 및 별 보상 카드 덱 -->
+        <div class="bg-white/95 border-4 border-yellow-300 rounded-3xl p-4 shadow-xl w-full max-w-xs my-2 space-y-3">
+          <p class="text-base font-black text-yellow-700">⭐ 완수 마법 보상이 도감에 등록됨 ⭐</p>
+          <div class="flex justify-around items-center">
+            <div class="text-center">
+              <span class="text-4xl sparkle-element">⭐</span>
+              <p id="obtained-stars-count" class="font-black text-yellow-600 text-sm mt-1">+10개!</p>
+            </div>
+            <div class="text-center">
+              <span id="obtained-badge-icon" class="text-4xl sparkle-element">🏅</span>
+              <p id="obtained-badge-name" class="font-black text-pink-600 text-xs mt-1">별빛 배지</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full flex flex-col gap-2 max-w-xs">
+          <button id="next-level-btn" onclick="goToNextLevel()" class="btn-bounce w-full py-3.5 bg-gradient-to-r from-pink-500 to-rose-400 text-white font-black text-lg rounded-2xl shadow-md">
+            다음 마법 모험지로 가기! 👉
+          </button>
+          <button onclick="backToMap()" class="btn-bounce w-full py-2 bg-yellow-100 text-yellow-800 font-bold rounded-xl text-sm">
+            다른 장소 골라보기
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= SCREEN: FAIL (부담 없는 다정한 재시도) ================= -->
+      <div id="screen-fail" class="hidden flex-col justify-between items-center h-full py-4 text-center z-20">
+        <div class="mt-4 animate-bounce">
+          <!-- 걱정하는 아바타 연출 -->
+          <div class="relative w-24 h-24 mx-auto flex flex-col items-center justify-center">
+            <div class="absolute w-18 h-18 bg-pink-400 rounded-full top-1 opacity-70"></div>
+            <div class="absolute w-16 h-16 bg-amber-100 rounded-full top-3 flex flex-col items-center justify-center">
+              <div class="flex gap-2 mt-2">
+                <!-- 울상인 눈썹과 어리둥절한 동그란 눈 -->
+                <div class="w-2.5 h-2.5 bg-slate-700 rounded-full"></div>
+                <div class="w-2.5 h-2.5 bg-slate-700 rounded-full"></div>
+              </div>
+              <div class="w-3 h-2 border-t-2 border-slate-700 rounded-t-full mt-2"></div>
+            </div>
+          </div>
+          <h2 class="text-2xl font-black text-purple-600 mt-2">괜찮아! 한 번 더 해보자!</h2>
+          <p id="fail-cheer-message" class="text-sm text-gray-500 font-bold mt-1">
+            "요정들이 다시 도전하는 다정하고 예쁜 공주님을 도와줄게!"
+          </p>
+        </div>
+
+        <div class="w-full flex flex-col gap-2 max-w-xs mb-2">
+          <button onclick="resetCurrentLevel()" class="btn-bounce w-full py-3.5 bg-purple-500 text-white font-black text-lg rounded-xl shadow-md">
+            한 번 더 힘내기! 💛
+          </button>
+          <button onclick="backToMap()" class="btn-bounce w-full py-1.5 bg-gray-200 text-gray-700 font-bold rounded-xl text-sm">
+            지도로 돌아가기
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= SCREEN: DECO ROOM (상설 왕국 꾸미기방) ================= -->
+      <div id="screen-deco" class="hidden flex-col justify-between h-full z-10">
+        <div class="text-center my-1">
+          <h2 class="text-2xl font-black text-purple-600">🎨 우리 공주님의 별빛 왕국 정원 🎨</h2>
+          <p class="text-[11px] text-gray-500">별빛으로 얻은 소중한 스티커를 예쁘게 움직여보세요!</p>
+        </div>
+
+        <!-- 드로잉/배치 보드 -->
+        <div id="deco-board" class="relative flex-1 w-full bg-gradient-to-tr from-sky-100 via-pink-50 to-pink-100 border-4 border-purple-200 rounded-2xl overflow-hidden shadow-inner flex justify-end items-end p-2">
+          <span class="absolute top-4 left-6 text-2xl sparkle-element opacity-80">🏰</span>
+          <span class="absolute top-2 right-12 text-lg sparkle-element opacity-60">✨</span>
+          <span class="absolute bottom-4 left-4 text-3xl opacity-50">🌸</span>
+        </div>
+
+        <!-- 팔레트 선택단 -->
+        <div class="mt-2 p-2 bg-white/95 rounded-2xl border border-purple-100 flex flex-col gap-1">
+          <p class="text-[10px] text-purple-500 font-black text-center">원하는 예쁜 스티커를 클릭해서 배치하고 끌어보세요!</p>
+          <div id="sticker-selections" class="flex justify-around items-center gap-1.5">
+            <!-- 스티커들 동적 주입 -->
+          </div>
+        </div>
+
+        <div class="flex gap-2 mt-2">
+          <button onclick="clearDecoBoard()" class="btn-bounce flex-1 py-2 bg-rose-100 border border-rose-200 text-rose-800 text-xs font-black rounded-lg">
+            🧹 정원 청소하기
+          </button>
+          <button onclick="exitDecoRoom()" class="btn-bounce flex-1 py-2 bg-purple-500 text-white text-xs font-black rounded-lg">
+            🏰 모험으로 복귀하기
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= SCREEN: STICKER BOOK (도감 및 스티커북) ================= -->
+      <div id="screen-stickerbook" class="hidden flex-col justify-between h-full z-10">
+        <div class="text-center my-1">
+          <h2 class="text-2xl font-black text-indigo-600">🏅 마법 모험 도감 🏅</h2>
+          <p class="text-xs text-gray-500 font-bold">도전에서 모은 특별 요정 배지 컬렉션!</p>
+        </div>
+
+        <div id="stickerbook-grid" class="flex-1 grid grid-cols-3 gap-2 p-2 overflow-y-auto max-h-[55vh]">
+          <!-- 도감 아이템들 동적 렌더링 -->
+        </div>
+
+        <button onclick="goToHome()" class="btn-bounce w-full py-3 bg-indigo-500 text-white font-black rounded-xl text-sm mt-2">
+          메인 화면으로 돌아가기
+        </button>
+      </div>
+
+      <!-- ================= SCREEN: DAILY QUEST (오늘의 퀘스트) ================= -->
+      <div id="screen-daily" class="hidden flex-col justify-between h-full z-10">
+        <div class="text-center my-1">
+          <h2 class="text-2xl font-black text-blue-600">📅 오늘의 마법 퀘스트 📅</h2>
+          <p class="text-xs text-gray-500">매일매일 특별한 목표를 채우고 보너스 별을 받아요!</p>
+        </div>
+
+        <div class="bg-white/90 border-2 border-blue-200 rounded-2xl p-4 space-y-4 my-auto">
+          <div class="flex items-center justify-between p-2.5 bg-blue-50 rounded-xl border border-blue-100">
+            <div>
+              <p class="font-black text-gray-800 text-sm">목표 1: 별 15개 획득하기</p>
+              <p id="daily-q1-status" class="text-xs text-blue-600 font-bold">진행도: 0 / 15</p>
+            </div>
+            <button id="daily-q1-btn" onclick="claimDailyReward(1)" class="btn-bounce px-3 py-1 bg-gray-300 text-white text-xs font-black rounded-full" disabled>완료불가</button>
+          </div>
+
+          <div class="flex items-center justify-between p-2.5 bg-purple-50 rounded-xl border border-purple-100">
+            <div>
+              <p class="font-black text-gray-800 text-sm">목표 2: 아무 레벨이나 1개 완료하기</p>
+              <p id="daily-q2-status" class="text-xs text-purple-600 font-bold">진행도: 미완료</p>
+            </div>
+            <button id="daily-q2-btn" onclick="claimDailyReward(2)" class="btn-bounce px-3 py-1 bg-gray-300 text-white text-xs font-black rounded-full" disabled>완료불가</button>
+          </div>
+        </div>
+
+        <button onclick="goToHome()" class="btn-bounce w-full py-3 bg-blue-500 text-white font-black rounded-xl text-sm">
+          메인 화면으로 돌아가기
+        </button>
+      </div>
+
+      <!-- ================= SCREEN: ENDING (엔딩 스크린) ================= -->
+      <div id="screen-ending" class="hidden flex-col justify-between items-center h-full py-2 text-center z-10">
+        <div class="mt-2">
+          <div class="text-4xl animate-bounce">👑🔮✨✨🎠🌈</div>
+          <h2 class="text-2xl sm:text-3xl font-black text-pink-600 mt-1 drop-shadow-md">
+            별빛 왕국이 완전히 빛나요!
+          </h2>
+          <p class="text-xs sm:text-sm text-purple-700 font-black max-w-[280px] mx-auto leading-tight">
+            15개의 프리즘 마법 보석을 모두 복구한 로제 공주님과 요정 친구들!
+          </p>
+        </div>
+
+        <div class="relative w-full max-w-[260px] h-[210px] rounded-3xl bg-gradient-to-b from-teal-50 to-pink-100 border-4 border-yellow-300 shadow-xl overflow-hidden flex flex-col justify-end p-2">
+          <span class="absolute top-1 left-2 text-xl sparkle-element">⭐</span>
+          <span class="absolute top-6 right-6 text-xl sparkle-element" style="animation-delay: 0.5s;">⭐</span>
+          <div class="absolute top-2 left-1/2 transform -translate-x-1/2 text-center">
+            <span class="text-5xl floaty-element block">👑👸🏰</span>
+            <span class="text-[9px] bg-sky-200 text-sky-800 px-1.5 rounded-full font-black">전설의 프리즘 크라운 완공</span>
+          </div>
+          <div class="flex justify-around items-end gap-1 z-10 mb-1 text-2xl">
+            <span>🧚‍♀️</span><span>🦄</span><span>🧚‍♂️</span><span>🐿️</span>
+          </div>
+          <div class="text-xs bg-white/70 py-1 rounded-xl font-bold text-pink-600 shadow-inner font-sans">
+            🌈 사랑과 협동이 피워낸 눈부신 마법!
+          </div>
+        </div>
+
+        <div class="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-2.5 w-full max-w-xs font-sans">
+          <p class="text-xs font-black text-yellow-800">
+            공주님이 수집한 총 별 조각: <span id="ending-total-stars" class="text-pink-600 text-lg">0</span>개 ⭐
+          </p>
+          <p class="text-[11px] text-gray-500 font-bold">
+            엄마 아빠에게 아름답게 완성된 프리즘 왕국을 기쁘게 자랑해 보세요!
+          </p>
+        </div>
+
+        <div class="w-full flex flex-col gap-2 max-w-xs">
+          <button onclick="showEndingCelebration()" class="btn-bounce w-full py-2.5 bg-gradient-to-r from-teal-400 to-emerald-400 text-white font-black text-base rounded-2xl shadow-md">
+            💖 엄마아빠와 손뼉치기 축하!
+          </button>
+          <div class="flex gap-2">
+            <button onclick="goToHome()" class="btn-bounce flex-1 py-1.5 bg-pink-400 text-white font-bold rounded-lg text-xs">
+              ✨ 마법 처음부터
+            </button>
+            <button onclick="showConfirmReset()" class="btn-bounce flex-1 py-1.5 bg-yellow-300 text-yellow-800 font-bold rounded-lg text-xs">
+              🔄 데이터 초기화
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= DIALOG CONFIRM (커스텀 핑크 마법 모달) ================= -->
+  <div id="confirm-modal" class="hidden absolute inset-0 w-full h-full justify-center items-center bg-black/40 z-50 p-4">
+    <div class="bg-white rounded-3xl border-4 border-pink-300 p-6 max-w-xs text-center space-y-4 shadow-2xl scale-95 transition-transform duration-300">
+      <div class="text-5xl floaty-element">🧙‍♂️💬</div>
+      <h3 id="confirm-title" class="text-xl font-black text-purple-600">마법 보드 초기화</h3>
+      <p id="confirm-description" class="text-sm text-gray-600 font-black leading-tight">처음부터 마법 모험을 다시 떠날까요?</p>
+      <div class="flex gap-3">
+        <button id="confirm-approve-btn" class="btn-bounce flex-1 py-2.5 bg-rose-400 text-white font-bold rounded-xl shadow-md text-sm">네! 다시 할게요</button>
+        <button id="confirm-cancel-btn" class="btn-bounce flex-1 py-2.5 bg-gray-200 text-gray-700 font-bold rounded-xl text-sm">아니오!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 토스트 메시지 팝업 -->
+  <div id="toast-modal" class="hidden absolute top-8 left-1/2 transform -translate-x-1/2 bg-pink-500 text-white font-black px-6 py-2.5 rounded-full shadow-2xl border-2 border-white z-50 text-center animate-bounce text-sm">
+    <p id="toast-text">하트를 찾았어! 💕</p>
+  </div>
+
+  <script>
+    const APP_ID = 'tinystar_prism_master_v15_full_animation';
+    let gameState = {
+      stars: 0,
+      clearedLevels: [1],
+      difficulty: 'easy',
+      decoStickers: [],
+      collectedBadges: [],
+      dailyQuest1Claimed: false,
+      dailyQuest2Claimed: false,
+      levelCompletedTodayCount: 0
+    };
+
+    let currentLevel = 1;
+    let currentSubStage = 1; // 1, 2, 3 단계
+    let isSoundOn = true;
+    let synth = null;
+    let activeLevelRuntime = null;
+
+    // 15개 마법 탐험 레벨 목록
+    const levelMeta = [
+      { id: 1, icon: "🏡", title: "별빛 정원", desc: "숨은 별빛 보석 구출", type: "hybrid_1" },
+      { id: 2, icon: "⛲", title: "보석 분수", desc: "요정의 분리 가동", type: "hybrid_2" },
+      { id: 3, icon: "🌲", title: "요정 카드 숲", desc: "요정 짝 맞추기 숲", type: "hybrid_3" },
+      { id: 4, icon: "🌈", title: "무지개 꽃길", desc: "꽃빛 기억 멜로디", type: "hybrid_4" },
+      { id: 5, icon: "🧪", title: "물약 실험실", desc: "비약 가마솥 제조", type: "hybrid_5" },
+      { id: 6, icon: "⛰️", title: "그림자 언덕", desc: "동물 실루엣 추론", type: "hybrid_6" },
+      { id: 7, icon: "☁️", title: "구름 비행정", desc: "안전 구름 다리", type: "hybrid_7" },
+      { id: 8, icon: "💎", title: "리듬 자수정", desc: "빛나는 리듬 동심원", type: "hybrid_8" },
+      { id: 9, icon: "🧩", title: "마법 퍼즐방", desc: "성의 축벽 복원", type: "hybrid_9" },
+      { id: 10, icon: "🎠", title: "은하수 열차", desc: "은하 궤도 패턴 완성", type: "hybrid_10" },
+      { id: 11, icon: "🦖", title: "아기용 동굴", desc: "숨은 마법 보석 찾기", type: "hybrid_1" },
+      { id: 12, icon: "🎪", title: "무지개 광장", desc: "과일 모양 분류 대작전", type: "hybrid_2" },
+      { id: 13, icon: "🌙", title: "달빛 보석 텐트", desc: "보석의 비밀 카드", type: "hybrid_3" },
+      { id: 14, icon: "🍄", title: "신비한 버섯 정원", desc: "노래하는 멜로디 버섯", type: "hybrid_4" },
+      { id: 15, icon: "🏰", title: "마법 프리즘 성", desc: "마법 성 종합 수리", type: "hybrid_15" }
+    ];
+
+    const badgePool = [
+      { id: "b1", emoji: "🌻", name: "별빛 해바라기 배지", desc: "레벨 1~3 완료 시 수여" },
+      { id: "b2", emoji: "🍇", name: "달콤 과일 배지", desc: "레벨 4~6 완료 시 수여" },
+      { id: "b3", emoji: "🦄", name: "날개 달린 유니콘 배지", desc: "레벨 7~9 완료 시 수여" },
+      { id: "b4", emoji: "🔮", name: "신비한 마법 구슬 배지", desc: "레벨 10~12 완료 시 수여" },
+      { id: "b5", emoji: "👑", name: "무지개 프리즘 크라운 배지", desc: "레벨 13~15 완료 시 수여" }
+    ];
+
+    const stickerPool = ["👸", "🧚‍♀️", "🧚‍♂️", "🦄", "🐿️", "🏰", "👑", "🌈", "⭐", "💖", "🌸", "🍇", "🌻", "🎈"];
+
+    function initAudio() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext && !synth) {
+          synth = new AudioContext();
+        }
+      } catch (e) {
+        console.warn("오디오 사용 제한");
+      }
+    }
+
+    function playSound(type) {
+      if (!isSoundOn) return;
+      initAudio();
+      if (!synth) return;
+      try {
+        if (synth.state === 'suspended') synth.resume();
+        const osc = synth.createOscillator();
+        const gain = synth.createGain();
+        osc.connect(gain);
+        gain.connect(synth.destination);
+        const now = synth.currentTime;
+
+        if (type === 'click') {
+          osc.frequency.setValueAtTime(450, now);
+          osc.frequency.exponentialRampToValueAtTime(900, now + 0.1);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+          osc.start(now);
+          osc.stop(now + 0.1);
+        } else if (type === 'star' || type === 'sparkle') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(900, now);
+          osc.frequency.setValueAtTime(1250, now + 0.05);
+          osc.frequency.setValueAtTime(1600, now + 0.1);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
+          osc.start(now);
+          osc.stop(now + 0.22);
+        } else if (type === 'success') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523, now);
+          osc.frequency.setValueAtTime(659, now + 0.08);
+          osc.frequency.setValueAtTime(783, now + 0.16);
+          osc.frequency.setValueAtTime(1046, now + 0.24);
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+          osc.start(now);
+          osc.stop(now + 0.45);
+        } else if (type === 'fail') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(330, now);
+          osc.frequency.exponentialRampToValueAtTime(150, now + 0.3);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+          osc.start(now);
+          osc.stop(now + 0.3);
+        }
+      } catch (e) {
+        console.warn("오디오 에러:", e);
+      }
+    }
+
+    function toggleSound() {
+      isSoundOn = !isSoundOn;
+      const soundBtn = document.getElementById('sound-btn');
+      soundBtn.innerHTML = isSoundOn ? '🔊' : '🔇';
+      playSound('click');
+    }
+
+    function loadSavedData() {
+      try {
+        const data = localStorage.getItem(APP_ID);
+        if (data) {
+          gameState = JSON.parse(data);
+          if (!gameState.clearedLevels) gameState.clearedLevels = [1];
+          if (!gameState.clearedLevels.includes(1)) gameState.clearedLevels.push(1);
+          if (!gameState.collectedBadges) gameState.collectedBadges = [];
+          if (gameState.dailyQuest1Claimed === undefined) gameState.dailyQuest1Claimed = false;
+          if (gameState.dailyQuest2Claimed === undefined) gameState.dailyQuest2Claimed = false;
+          if (gameState.levelCompletedTodayCount === undefined) gameState.levelCompletedTodayCount = 0;
+        }
+      } catch (e) {
+        console.warn("로컬 스토리지 없음");
+      }
+      setDifficulty(gameState.difficulty || 'easy');
+      document.getElementById('global-star-count').innerText = gameState.stars;
+    }
+
+    function saveGameData() {
+      try {
+        localStorage.setItem(APP_ID, JSON.stringify(gameState));
+      } catch (e) {}
+      document.getElementById('global-star-count').innerText = gameState.stars;
+      updateDailyQuestUI();
+    }
+
+    function showConfirmModal(title, desc, callback) {
+      playSound('click');
+      const modal = document.getElementById('confirm-modal');
+      document.getElementById('confirm-title').innerText = title;
+      document.getElementById('confirm-description').innerText = desc;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      const approveBtn = document.getElementById('confirm-approve-btn');
+      const cancelBtn = document.getElementById('confirm-cancel-btn');
+
+      approveBtn.onclick = function() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        callback(true);
+      };
+
+      cancelBtn.onclick = function() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        callback(false);
+      };
+    }
+
+    function showConfirmReset() {
+      showConfirmModal("마법 보드 초기화", "모든 획득한 별, 배지 및 15개 레벨 진행 상황이 깔끔하게 지워져요. 다시 출발할까요?", (approved) => {
+        if (approved) {
+          gameState = {
+            stars: 0,
+            clearedLevels: [1],
+            difficulty: 'easy',
+            decoStickers: [],
+            collectedBadges: [],
+            dailyQuest1Claimed: false,
+            dailyQuest2Claimed: false,
+            levelCompletedTodayCount: 0
+          };
+          saveGameData();
+          setDifficulty('easy');
+          updateMapUI();
+          clearDecoBoard();
+          showScreen('screen-start');
+          showToast("왕국이 맑고 투명하게 정화되었어요! 🧹");
+        }
+      });
+    }
+
+    function setDifficulty(diff) {
+      gameState.difficulty = diff;
+      const btns = {
+        easy: document.getElementById('diff-easy'),
+        normal: document.getElementById('diff-normal'),
+        challenge: document.getElementById('diff-challenge')
+      };
+      
+      Object.keys(btns).forEach(key => {
+        if (!btns[key]) return;
+        if (key === diff) {
+          btns[key].className = "py-1.5 rounded-xl font-black transition-all border-2 border-pink-300 bg-pink-100 text-pink-700 text-sm";
+        } else {
+          btns[key].className = "py-1.5 rounded-xl font-black transition-all border-2 border-transparent bg-white text-gray-500 text-sm";
+        }
+      });
+      saveGameData();
+    }
+
+    function showToast(text) {
+      const toast = document.getElementById('toast-modal');
+      const toastText = document.getElementById('toast-text');
+      toastText.innerText = text;
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 2400);
+    }
+
+    function showScreen(screenId) {
+      const screens = [
+        'screen-start', 'screen-guide', 'screen-map', 
+        'screen-gameplay', 'screen-success', 'screen-fail', 'screen-deco', 'screen-ending', 'screen-stickerbook', 'screen-daily'
+      ];
+      screens.forEach(s => {
+        document.getElementById(s).classList.add('hidden');
+        document.getElementById(s).classList.remove('flex');
+      });
+
+      const target = document.getElementById(screenId);
+      target.classList.remove('hidden');
+      target.classList.add('flex');
+
+      const topBar = document.getElementById('top-bar');
+      if (screenId === 'screen-start' || screenId === 'screen-guide') {
+        topBar.classList.remove('flex');
+        topBar.classList.add('hidden');
+      } else {
+        topBar.classList.remove('hidden');
+        topBar.classList.add('flex');
+      }
+    }
+
+    function goToHome() {
+      playSound('click');
+      showScreen('screen-start');
+    }
+
+    function startGame() {
+      playSound('click');
+      updateMapUI();
+      showScreen('screen-map');
+    }
+
+    function backToMap() {
+      playSound('click');
+      updateMapUI();
+      showScreen('screen-map');
+    }
+
+    function updateMapUI() {
+      const container = document.getElementById('map-scroll-area');
+      container.innerHTML = ""; 
+
+      levelMeta.forEach(meta => {
+        const isOpened = gameState.clearedLevels.includes(meta.id);
+        const card = document.createElement('div');
+        
+        let cardStyle = "bg-white/90 border-4 rounded-2xl p-2.5 flex items-center justify-between shadow-md relative";
+        let actionClick = `selectLevel(${meta.id})`;
+        let rightPart = ``;
+
+        if (isOpened) {
+          cardStyle += " border-pink-200 cursor-pointer hover:border-pink-400";
+          const isFinished = gameState.clearedLevels.includes(meta.id + 1) || meta.id === 15;
+          if (isFinished) {
+            rightPart = `<span class="text-xs text-yellow-500 font-black">⭐ 완수 완료 ✨</span>`;
+          } else {
+            rightPart = `<span class="text-[10px] bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-black animate-pulse">마법 진행!</span>`;
+          }
+        } else {
+          cardStyle += " opacity-50 pointer-events-none border-gray-100";
+          rightPart = `<span class="text-gray-400 text-xs">🔒 이전 맵 성공 필요</span>`;
+          actionClick = "";
+        }
+
+        card.className = `${cardStyle} btn-bounce`;
+        if (actionClick) card.setAttribute("onclick", actionClick);
+
+        card.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="text-2xl p-1 bg-pink-100 rounded-xl">${meta.icon}</span>
+            <div class="text-left leading-tight">
+              <span class="text-[9px] bg-pink-50 text-pink-600 font-extrabold px-1.5 rounded-full">레벨 ${meta.id}</span>
+              <h3 class="text-sm font-black text-gray-800">${meta.title}</h3>
+              <p class="text-[10px] text-gray-400 font-bold">${meta.desc}</p>
+            </div>
+          </div>
+          <div>${rightPart}</div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function selectLevel(lv) {
+      if (!gameState.clearedLevels.includes(lv)) {
+        showToast("이전 모험을 먼저 성공해야 열려요! 🔒");
+        return;
+      }
+      playSound('click');
+      currentLevel = lv;
+      currentSubStage = 1; 
+      setupLevel(lv, currentSubStage);
+      showScreen('screen-gameplay');
+    }
+
+    function setHelper(name, role, icon, bubble) {
+      const helperNameEl = document.getElementById('helper-name');
+      const helperBubbleEl = document.getElementById('helper-bubble');
+      if (helperNameEl) helperNameEl.innerText = `${name} (${role})`;
+      if (helperBubbleEl) helperBubbleEl.innerText = bubble;
+
+      // 요정 날개 속도 상승 및 입 연출 추가로 더욱 생동감 있는 아바타 구현
+      const leftWing = document.getElementById('fairy-wing-l');
+      const rightWing = document.getElementById('fairy-wing-r');
+      const fairyMouth = document.getElementById('fairy-mouth');
+
+      if (leftWing) leftWing.style.animationDuration = '0.2s';
+      if (rightWing) rightWing.style.animationDuration = '0.2s';
+      if (fairyMouth) {
+        fairyMouth.className = "w-2.5 h-2.5 bg-rose-400 rounded-full mt-1.5 transition-all duration-200"; // 말하는 입
+      }
+
+      setTimeout(() => {
+        if (leftWing) leftWing.style.animationDuration = '0.6s';
+        if (rightWing) rightWing.style.animationDuration = '0.6s';
+        if (fairyMouth) {
+          fairyMouth.className = "w-2.5 h-1 border-b-2 border-slate-700 rounded-b-full mt-1.5"; // 활짝 미소
+        }
+      }, 1500);
+    }
+
+    function setupLevel(lv, subStage) {
+      if (activeLevelRuntime && typeof activeLevelRuntime.cleanup === 'function') {
+        activeLevelRuntime.cleanup();
+      }
+      activeLevelRuntime = null;
+
+      const tag = document.getElementById('current-lv-tag');
+      const title = document.getElementById('current-map-title');
+      const playground = document.getElementById('game-playground');
+      
+      tag.innerText = `레벨 ${lv} - 단계 ${subStage}`;
+      playground.innerHTML = "";
+      
+      // 3단계 시각 인디케이터 갱신
+      for (let i = 1; i <= 3; i++) {
+        const dot = document.getElementById(`substage-dot-${i}`);
+        if (i < subStage) {
+          dot.className = "w-3 h-3 rounded-full bg-pink-500 border border-pink-600 shadow-sm"; 
+        } else if (i === subStage) {
+          dot.className = "w-3.5 h-3.5 rounded-full bg-yellow-400 border border-yellow-500 sparkle-element shadow-md"; 
+        } else {
+          dot.className = "w-3 h-3 rounded-full bg-gray-200 border border-gray-300"; 
+        }
+      }
+
+      const meta = levelMeta[lv - 1];
+      title.innerText = meta.title;
+
+      let diff = gameState.difficulty || 'easy';
+      let diffConfig = {
+        easy: { count: 3, memoryLength: 2, puzzleSize: 4 },
+        normal: { count: 4, memoryLength: 3, puzzleSize: 4 },
+        challenge: { count: 5, memoryLength: 4, puzzleSize: 9 }
+      }[diff];
+
+      let bonusCount = (subStage - 1);
+      let currentItemCount = diffConfig.count + bonusCount;
+      let currentMemoryLength = diffConfig.memoryLength + bonusCount;
+
+      // ★ 15개 레벨별 3단계 복합 조작(Multi-mechanic) 및 인지 요소를 단계별로 빌드 ★
+      switch(lv) {
+        case 1:
+        case 11:
+          if (subStage === 1) {
+            setHelper("티니키타", "별빛 요정", "🧚‍♂️", `정원에 꼭꼭 숨어있는 보석별을 찾아 탭해줘! (관찰하기)`);
+            buildObservationSubStage(playground, currentItemCount);
+          } else if (subStage === 2) {
+            setHelper("슈슈하트", "사랑 요정", "🧚‍♀️", `빛나는 보석들을 어울리는 은하수 바구니에 드래그해 옮겨봐! (모양 분류)`);
+            buildDragSortSubStage(playground, currentItemCount, "shape");
+          } else {
+            setHelper("코코링", "동물 친구", "🐿️", `오직 '하트 무늬' 구름만 조심스레 밟아 건너가자! (조건 분류)`);
+            buildConditionalChoiceSubStage(playground, currentItemCount, "💖");
+          }
+          break;
+          
+        case 2:
+        case 12:
+          if (subStage === 1) {
+            setHelper("코코링", "동물 친구", "🐿️", `분수대에서 '블루(파랑) 보석'만 쏙 골라내 바구니에 담아봐! (색상 분류)`);
+            buildDragSortSubStage(playground, currentItemCount, "color");
+          } else if (subStage === 2) {
+            setHelper("루루콘", "유니콘", "🦄", `기차의 비어있는 곳에 알맞은 다음 무늬는 무엇일까? (패턴 매칭)`);
+            buildPatternSubStage(playground, subStage);
+          } else {
+            setHelper("티니키타", "별빛 요정", "🧚‍♂️", `꽃들이 노래한 깜빡임 순서를 그대로 기억해 연주하자! (순서 기억)`);
+            buildSequenceSubStage(playground, currentMemoryLength);
+          }
+          break;
+
+        case 3:
+        case 13:
+          if (subStage === 1) {
+            setHelper("슈슈하트", "사랑 요정", "🧚‍♀️", `뒤집힌 요정 카드 중, 똑같이 생긴 짝을 뒤집어 찾아봐! (기억력)`);
+            buildMemoryCardsSubStage(playground, currentItemCount);
+          } else if (subStage === 2) {
+            setHelper("코코링", "동물 친구", "🐿️", `마법 가마솥에 물약 레시피대로 재료들을 드래그해 혼합해봐! (아이템 조합)`);
+            buildCombinationSubStage(playground, currentItemCount);
+          } else {
+            setHelper("티니키타", "별빛 요정", "🧚‍♂️", `진짜 요정 동물의 모양에 알맞은 그림자를 찾아 짝지어줘! (그림자 추론)`);
+            buildReasoningSubStage(playground, currentItemCount);
+          }
+          break;
+
+        case 4:
+        case 14:
+          if (subStage === 1) {
+            setHelper("루루콘", "유니콘", "🦄", `춤추는 무지개 꽃길의 음악 멜로디 순서를 연주해봐! (순서 기억)`);
+            buildSequenceSubStage(playground, currentMemoryLength);
+          } else if (subStage === 2) {
+            setHelper("슈슈하트", "사랑 요정", "🧚‍♀️", `귀여운 별들을 크기가 '가장 큰 순서'대로 바구니에 드래그하자! (순서 정렬)`);
+            buildDragSortSubStage(playground, currentItemCount, "size");
+          } else {
+            setHelper("코코링", "동물 친구", "🐿️", `마법 가마솥에 맞는 신비한 조합 재료를 넣어줘! (아이템 조합)`);
+            buildCombinationSubStage(playground, currentItemCount);
+          }
+          break;
+
+        case 5:
+          if (subStage === 1) {
+            setHelper("코코링", "동물 친구", "🐿️", `지정된 레시피 카드의 약초를 가마솥에 드래그하여 넣어줘! (아이템 조합)`);
+            buildCombinationSubStage(playground, currentItemCount);
+          } else if (subStage === 2) {
+            setHelper("티니키타", "별빛 요정", "🧚‍♂️", `지시된 별 모양의 보석 타일만 탭하여 수거해보자! (조건 분별)`);
+            buildConditionalChoiceSubStage(playground, currentItemCount, "⭐");
+          } else {
+            setHelper("루루콘", "유니콘", "🦄", `열차 궤도의 패턴 빈칸에 알맞은 과일 조각을 채워줘! (패턴 매칭)`);
+            buildPatternSubStage(playground, subStage);
+          }
+          break;
+
+        case 6:
+          if (subStage === 1) {
+            setHelper("티니키타", "별빛 요정", "🧚‍♂️", `알맞은 요정 동물의 그림자 모양을 연결해봐! (추론놀이)`);
+            buildReasoningSubStage(playground, currentItemCount);
+          } else if (subStage === 2) {
+            setHelper("슈슈하트", "사랑 요정", "🧚‍♀️", `노란색 아이템들만 쏙 골라서 예쁜 하트 바구니에 담아봐! (색상 분류)`);
+            buildDragSortSubStage(playground, currentItemCount, "color_yellow");
+          } else {
+            setHelper("코코링", "동물 친구", "🐿️", `비밀번호에 맞는 순서대로 버섯을 터치해 문을 열어보자! (순서 기억)`);
+            buildSequenceSubStage(playground, currentMemoryLength);
+          }
+          break;
+
+        case 7:
+          if (subStage === 1) {
+            setHelper("슈슈하트", "사랑 요정", "🧚‍♀️", `오직 '별빛 모양'의 디딤돌 구름만 골라서 건너가자! (조건부 선택)`);
+            buildConditionalChoiceSubStage(playground, currentItemCount, "⭐");
+          } else if (subStage === 2) {
+            setHelper("티니키타", "별빛 요정", "🧚‍♂️", `숨은 마법 정원의 투명 아기별들을 신속히 구출해줘! (관찰하기)`);
+            buildObservationSubStage(playground, currentItemCount);
+          } else {
+            setHelper("코코링", "동물 친구", "🐿️", `가마솥에 귀여운 스페셜 별빛 가루들을 모아 조합하자! (아이템 조합)`);
+            buildCombinationSubStage(playground, currentItemCount);
+          }
+          break;
+
+        case 8:
+          if (subStage === 1) {
+            setHelper("루루콘", "유니콘", "🦄", `동그란 판정원에 자수정이 정확히 겹치는 타이밍에 탭! (타이밍 조작)`);
+            buildTimingSubStage(playground, currentItemCount);
+          } else if (subStage === 2) {
+            setHelper("슈슈하트", "사랑 요정", "🧚‍♀️", `쌍둥이 요정들의 뒤집힌 비밀 카드의 짝을 찾아 맞춰봐! (기억력)`);
+            buildMemoryCardsSubStage(playground, currentItemCount);
+          } else {
+            setHelper("코코링", "동물 친구", "🐿️", `빨간 사과들만 골라 분류 바구니에 쏙 드래그하자! (색상 분류)`);
+            buildDragSortSubStage(playground, currentItemCount, "color_red");
+          }
+          break;
+
+        case 9:
+          if (subStage === 1) {
+            setHelper("스텔라", "수호 요정", "👑", `부서진 왕국 성벽 퍼즐판을 알맞게 끼워 완성해줘! (공간지각 퍼즐)`);
+            buildPuzzleSubStage(playground, diffConfig.puzzleSize);
+          } else if (subStage === 2) {
+            setHelper("티니키타", "별빛 요정", "🧚‍♂️", `기차 바퀴의 깜빡인 드럼 박자 순서대로 북을 쳐봐! (순서 기억)`);
+            buildSequenceSubStage(playground, currentMemoryLength);
+          } else {
+            setHelper("슈슈하트", "사랑 요정", "🧚‍♀️", `가장 예쁜 하트 모양 구름 타일들만 탭해 징검다리를 열어줘! (조건 분별)`);
+            buildConditionalChoiceSubStage(playground, currentItemCount, "💖");
+          }
+          break;
+
+        case 10:
+          if (subStage === 1) {
+            setHelper("스텔라", "최종 수호자", "👑", `칙칙폭폭 지나가는 기차 패턴 선로의 빈칸 모양을 맞추자! (패턴 매칭)`);
+            buildPatternSubStage(playground, subStage);
+          } else if (subStage === 2) {
+            setHelper("코코링", "동물 친구", "🐿️", `가마솥에 레시피에 지시된 비밀 구슬 3개를 섞어 조합해봐! (아이템 조합)`);
+            buildCombinationSubStage(playground, currentItemCount);
+          } else {
+            setHelper("티니키타", "별빛 요정", "🧚‍♂️", `은하수 밤하늘 속 숨겨진 전설의 무지개 별들을 찾아줘! (관찰하기)`);
+            buildObservationSubStage(playground, currentItemCount);
+          }
+          break;
+
+        case 15:
+          // 파이널 대성전 조화와 정화의 3콤보 단계
+          setHelper("수호신 스텔라", "최종 마법 수리", "👑🧚‍♀️", `최종 프리즘 성을 빛나게 할 보석 기둥 종합 퍼즐을 맞춰봐!`);
+          buildSynthesisSubStage(playground, subStage);
+          break;
+      }
+    }
+
+    function triggerFairyHint() {
+      playSound('sparkle');
+      if (activeLevelRuntime && typeof activeLevelRuntime.hint === 'function') {
+        activeLevelRuntime.hint();
+      } else {
+        showToast("요정이 따뜻하게 응원의 마법 기운을 불어넣어 주고 있어요! ✨");
+      }
+    }
+
+    function resetCurrentLevel() {
+      playSound('click');
+      setupLevel(currentLevel, currentSubStage);
+    }
+
+    function createPoofEffect(x, y, parent) {
+      const poof = document.createElement('div');
+      poof.className = "absolute text-3xl pointer-events-none z-50 animate-ping";
+      poof.style.top = `${y}px`;
+      poof.style.left = `${x}px`;
+      poof.innerHTML = "✨💖✨";
+      parent.appendChild(poof);
+      setTimeout(() => poof.remove(), 600);
+    }
+
+    function handleSubStageClear() {
+      playSound('star');
+      if (currentSubStage < 3) {
+        currentSubStage++;
+        showToast(`참 잘했어! 다음 ${currentSubStage}단계 관문으로 출발! ✨`);
+        setTimeout(() => {
+          setupLevel(currentLevel, currentSubStage);
+        }, 800);
+      } else {
+        triggerSuccess(currentLevel);
+      }
+    }
+
+    function triggerSuccess(lv) {
+      playSound('success');
+      
+      const starReward = 10;
+      gameState.stars += starReward;
+      gameState.levelCompletedTodayCount += 1;
+      
+      if (!gameState.clearedLevels.includes(lv + 1) && lv < 15) {
+        gameState.clearedLevels.push(lv + 1);
+      }
+
+      let earnedBadge = null;
+      if (lv === 3 && !gameState.collectedBadges.includes("b1")) {
+        gameState.collectedBadges.push("b1");
+        earnedBadge = badgePool[0];
+      } else if (lv === 6 && !gameState.collectedBadges.includes("b2")) {
+        gameState.collectedBadges.push("b2");
+        earnedBadge = badgePool[1];
+      } else if (lv === 9 && !gameState.collectedBadges.includes("b3")) {
+        gameState.collectedBadges.push("b3");
+        earnedBadge = badgePool[2];
+      } else if (lv === 12 && !gameState.collectedBadges.includes("b4")) {
+        gameState.collectedBadges.push("b4");
+        earnedBadge = badgePool[3];
+      } else if (lv === 15 && !gameState.collectedBadges.includes("b5")) {
+        gameState.collectedBadges.push("b5");
+        earnedBadge = badgePool[4];
+      }
+
+      saveGameData();
+
+      document.getElementById('obtained-stars-count').innerText = `+${starReward}개!`;
+      
+      if (earnedBadge) {
+        document.getElementById('obtained-badge-icon').innerText = earnedBadge.emoji;
+        document.getElementById('obtained-badge-name').innerText = earnedBadge.name;
+        showToast(`🏅 신규 배지 [${earnedBadge.name}] 수집 성공!`);
+      } else {
+        document.getElementById('obtained-badge-icon').innerText = "🏅";
+        document.getElementById('obtained-badge-name').innerText = levelMeta[lv - 1].title + " 정화 수료증";
+      }
+
+      const successMsgs = [
+        "정말 대단하고 예쁜 마법이었어요! 공주님 최고!",
+        "오늘도 요정 왕국의 반짝임을 되찾았어요! 축하해요!",
+        "별빛들이 가득 모여 기뻐 춤추고 있어요! 너무나 빛나요!"
+      ];
+      document.getElementById('success-cheer-message').innerText = successMsgs[Math.floor(Math.random() * successMsgs.length)];
+
+      const nextBtn = document.getElementById('next-level-btn');
+      if (lv === 15) {
+        nextBtn.innerText = "🏰 프리즘 성 대단원 축제 현장 보기!";
+      } else {
+        nextBtn.innerText = `레벨 ${lv + 1} 보석기둥 구출지로! 👉`;
+      }
+
+      showScreen('screen-success');
+    }
+
+    function goToNextLevel() {
+      if (currentLevel === 15) {
+        document.getElementById('ending-total-stars').innerText = gameState.stars;
+        showScreen('screen-ending');
+      } else {
+        selectLevel(currentLevel + 1);
+      }
+    }
+
+    function triggerFail() {
+      playSound('fail');
+      document.getElementById('fail-cheer-message').innerText = failCheers[Math.floor(Math.random() * failCheers.length)];
+      showScreen('screen-fail');
+    }
+
+    const failCheers = [
+      "실수해도 괜찮아요! 요정들이 따뜻한 힌트를 주려고 기다린대요!",
+      "다시 천천히 해봐요! 로제 공주님이라면 꼭 밝힐 수 있어요!",
+      "걱정하지 마요! 우리 다시 힘을 모아 콕콕 눌러보아요! 💖"
+    ];
+
+
+    /* ========================================================
+       ★ 복합 지능 조작 서브스테이지 템플릿 빌더 (JS Engine) ★
+       ======================================================== */
+
+    /* 1. OBSERVATION (별빛 및 아기별 관찰 수거 - 클릭/터치) */
+    function buildObservationSubStage(parent, count) {
+      let foundCount = 0;
+      updateProgress(0, count);
+
+      const isLevel11 = currentLevel === 11;
+      const symbols = isLevel11 ? ["💎", "💖"] : ["⭐", "✨"];
+
+      for (let i = 0; i < count; i++) {
+        const item = document.createElement('div');
+        item.className = "absolute text-4xl cursor-pointer p-3 hover:scale-125 transition-all sparkle-element z-10";
+        item.style.top = `${15 + Math.random() * 65}%`;
+        item.style.left = `${10 + Math.random() * 75}%`;
+        item.innerHTML = symbols[i % symbols.length];
+        
+        item.onclick = function(e) {
+          e.stopPropagation();
+          playSound('star');
+          createPoofEffect(item.offsetLeft + 10, item.offsetTop + 10, parent);
+          item.remove();
+          foundCount++;
+          updateProgress(foundCount, count);
+          if (foundCount >= count) {
+            setTimeout(handleSubStageClear, 600);
+          }
+        };
+        parent.appendChild(item);
+      }
+
+      activeLevelRuntime = {
+        hint: function() {
+          const rem = parent.querySelectorAll('div');
+          if (rem.length > 0) {
+            rem[0].classList.add('scale-150', 'bg-yellow-200/50', 'rounded-full');
+            setTimeout(() => rem[0].classList.remove('scale-150', 'bg-yellow-200/50'), 1500);
+          }
+        }
+      };
+    }
+
+    /* 2. DRAG SORTING (드래그 앤 드롭 분류기) */
+    function buildDragSortSubStage(parent, count, mode) {
+      parent.classList.add('flex-col', 'justify-between', 'p-2');
+
+      const itemsArea = document.createElement('div');
+      itemsArea.className = "relative w-full h-[150px] bg-white/20 rounded-2xl border-2 border-dashed border-pink-200 overflow-hidden";
+      parent.appendChild(itemsArea);
+
+      const dropArea = document.createElement('div');
+      dropArea.className = "w-full h-[85px] bg-pink-100/70 border-4 border-pink-300 rounded-2xl flex items-center justify-center text-center font-black relative shadow-inner";
+      parent.appendChild(dropArea);
+
+      let targetRuleText = "";
+      let checkFn = () => false;
+
+      if (mode === "shape") {
+        targetRuleText = "⭐ '노란 별' 장식만 드래그해 오세요!";
+        checkFn = (el) => el.innerHTML === "⭐";
+      } else if (mode === "color") {
+        targetRuleText = "💎 '파랑 사파이어' 보석만 드래그해 오세요!";
+        checkFn = (el) => el.innerHTML === "💎";
+      } else if (mode === "size") {
+        targetRuleText = "👑 '커다란 왕관'만 골라 드래그해 오세요!";
+        checkFn = (el) => el.classList.contains('large-item');
+      } else if (mode === "color_yellow") {
+        targetRuleText = "💛 '노란 과일/보석'만 드래그해 오세요!";
+        checkFn = (el) => el.innerHTML === "🍋" || el.innerHTML === "🍌";
+      } else if (mode === "color_red") {
+        targetRuleText = "🍎 '빨간 딸기/사과'만 드래그해 오세요!";
+        checkFn = (el) => el.innerHTML === "🍎" || el.innerHTML === "🍓";
+      }
+
+      dropArea.innerHTML = `<p class="text-pink-600 text-sm font-bold z-10">${targetRuleText}</p><div class="absolute inset-0 bg-pink-200 opacity-25 rounded-xl"></div>`;
+
+      let matched = 0;
+      updateProgress(0, count);
+
+      const deck = [];
+      if (mode === "shape") {
+        for (let i = 0; i < count; i++) deck.push({ text: "⭐", cls: "text-4xl" });
+        for (let i = 0; i < 3; i++) deck.push({ text: "💖", cls: "text-4xl" });
+      } else if (mode === "color") {
+        for (let i = 0; i < count; i++) deck.push({ text: "💎", cls: "text-4xl" });
+        for (let i = 0; i < 3; i++) deck.push({ text: "💖", cls: "text-4xl" });
+      } else if (mode === "size") {
+        for (let i = 0; i < count; i++) deck.push({ text: "👑", cls: "text-5xl large-item" });
+        for (let i = 0; i < 3; i++) deck.push({ text: "👑", cls: "text-2xl small-item" });
+      } else if (mode === "color_yellow") {
+        for (let i = 0; i < count; i++) deck.push({ text: "🍋", cls: "text-4xl" });
+        for (let i = 0; i < 3; i++) deck.push({ text: "🍇", cls: "text-4xl" });
+      } else if (mode === "color_red") {
+        for (let i = 0; i < count; i++) deck.push({ text: "🍎", cls: "text-4xl" });
+        for (let i = 0; i < 3; i++) deck.push({ text: "🥝", cls: "text-4xl" });
+      }
+
+      deck.sort(() => Math.random() - 0.5);
+
+      deck.forEach((itemData, idx) => {
+        const item = document.createElement('div');
+        item.className = `draggable-item absolute ${itemData.cls} select-none active:scale-110 transition-transform duration-150 z-20`;
+        item.innerHTML = itemData.text;
+        item.style.top = `${15 + Math.floor(idx/4)*30}%`;
+        item.style.left = `${5 + (idx%4)*22}%`;
+
+        // 드래그 기능 완벽 탑재 (터치와 마우스 전용 모듈형 바인딩)
+        let isDragging = false;
+        let startX, startY;
+        let elemTop, elemLeft;
+
+        function onStart(e) {
+          isDragging = true;
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+          startX = clientX;
+          startY = clientY;
+          elemTop = item.offsetTop;
+          elemLeft = item.offsetLeft;
+          e.preventDefault();
+        }
+
+        function onMove(e) {
+          if (!isDragging) return;
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+          const dx = clientX - startX;
+          const dy = clientY - startY;
+          
+          item.style.top = `${elemTop + dy}px`;
+          item.style.left = `${elemLeft + dx}px`;
+        }
+
+        function onEnd() {
+          if (!isDragging) return;
+          isDragging = false;
+          
+          // 바구니 드롭 판정 (바구니 중심 좌표 확인)
+          const itemRect = item.getBoundingClientRect();
+          const dropRect = dropArea.getBoundingClientRect();
+
+          if (
+            itemRect.right > dropRect.left &&
+            itemRect.left < dropRect.right &&
+            itemRect.bottom > dropRect.top &&
+            itemRect.top < dropRect.bottom
+          ) {
+            // 바구니 안으로 정상 진입
+            if (checkFn(item)) {
+              playSound('star');
+              createPoofEffect(item.offsetLeft, item.offsetTop, itemsArea);
+              item.remove();
+              matched++;
+              updateProgress(matched, count);
+              if (matched >= count) {
+                setTimeout(handleSubStageClear, 600);
+              }
+            } else {
+              playSound('fail');
+              item.style.top = `${15 + Math.floor(idx/4)*30}%`;
+              item.style.left = `${5 + (idx%4)*22}%`;
+              showToast("이것은 다른 분류 종류 보석이에요!");
+            }
+          } else {
+            // 제자리 복원
+            item.style.top = `${15 + Math.floor(idx/4)*30}%`;
+            item.style.left = `${5 + (idx%4)*22}%`;
+          }
+        }
+
+        item.addEventListener('mousedown', onStart);
+        item.addEventListener('touchstart', onStart, { passive: false });
+
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('touchmove', onMove, { passive: false });
+
+        window.addEventListener('mouseup', onEnd);
+        window.addEventListener('touchend', onEnd);
+
+        itemsArea.appendChild(item);
+      });
+
+      activeLevelRuntime = {
+        hint: function() {
+          const items = itemsArea.querySelectorAll('.draggable-item');
+          let helped = false;
+          items.forEach(it => {
+            if (checkFn(it) && !helped) {
+              it.classList.add('scale-125', 'bg-yellow-200/50', 'rounded-full');
+              setTimeout(() => it.classList.remove('scale-125', 'bg-yellow-200/50'), 1500);
+              helped = true;
+            }
+          });
+        }
+      };
+    }
+
+    /* 3. CONDITIONAL CHOICE (조건 선택 후 확인 버튼 클릭 방식) */
+    function buildConditionalChoiceSubStage(parent, count, targetSymbol) {
+      parent.classList.add('flex-col', 'justify-around');
+
+      const textInfo = document.createElement('p');
+      textInfo.className = "text-sm font-black text-purple-700 text-center";
+      textInfo.innerText = `아래 구름 징검다리 중 오직 [${targetSymbol}] 무늬 구름만 밟은 후 아래 완성 확인 버튼을 꾹 누르세요!`;
+      parent.appendChild(textInfo);
+
+      const grid = document.createElement('div');
+      grid.className = "grid grid-cols-3 gap-3 w-full max-w-[280px]";
+      parent.appendChild(grid);
+
+      let selectedList = [];
+      const options = ["⭐", "💖", "🍀", "💎", "🌸", "🍌"];
+      
+      const pool = [];
+      for (let i = 0; i < count; i++) pool.push(targetSymbol);
+      options.forEach(opt => {
+        if (opt !== targetSymbol) {
+          pool.push(opt);
+          pool.push(opt);
+        }
+      });
+      pool.sort(() => Math.random() - 0.5);
+      const gameSubset = pool.slice(0, 9); // 9칸 구름다리 제작
+
+      gameSubset.forEach((symbol, idx) => {
+        const cloud = document.createElement('button');
+        cloud.className = "bg-white/90 border-2 border-sky-100 rounded-2xl h-14 text-2xl flex items-center justify-center shadow-sm btn-bounce";
+        cloud.innerHTML = symbol;
+        
+        cloud.onclick = function() {
+          playSound('click');
+          if (selectedList.includes(idx)) {
+            selectedList = selectedList.filter(v => v !== idx);
+            cloud.classList.remove('border-pink-500', 'bg-pink-100');
+          } else {
+            selectedList.push(idx);
+            cloud.classList.add('border-pink-500', 'bg-pink-100');
+          }
+        };
+        grid.appendChild(cloud);
+      });
+
+      const confirmBtn = document.createElement('button');
+      confirmBtn.className = "btn-bounce w-full max-w-xs py-3 bg-gradient-to-r from-pink-400 to-rose-400 text-white font-black text-sm rounded-xl shadow-md";
+      confirmBtn.innerText = "🌈 마법 다리 완성 확인하기! 🌈";
+      parent.appendChild(confirmBtn);
+
+      confirmBtn.onclick = function() {
+        // 정답 검증: 선택한 구름들이 정확히 정답 무늬여야 함
+        let isAllCorrect = true;
+        let selectedCount = 0;
+
+        gameSubset.forEach((sym, idx) => {
+          const isSelected = selectedList.includes(idx);
+          if (sym === targetSymbol) {
+            selectedCount++;
+            if (!isSelected) isAllCorrect = false; // 정답 구름을 선택 안함
+          } else {
+            if (isSelected) isAllCorrect = false; // 오답 구름을 선택함
+          }
+        });
+
+        if (isAllCorrect && selectedList.length === selectedCount) {
+          playSound('success');
+          setTimeout(handleSubStageClear, 600);
+        } else {
+          playSound('fail');
+          showToast("어머나! 조건에 맞지 않는 징검다리를 밟았어요! 다시 정렬해요!");
+        }
+      };
+
+      activeLevelRuntime = {
+        hint: function() {
+          const btns = grid.querySelectorAll('button');
+          btns.forEach((b, idx) => {
+            if (gameSubset[idx] === targetSymbol && !selectedList.includes(idx)) {
+              b.classList.add('ring-4', 'ring-teal-400');
+              setTimeout(() => b.classList.remove('ring-4', 'ring-teal-400'), 1500);
+            }
+          });
+        }
+      };
+    }
+
+    /* 4. PATTERN MATCHING (패턴 기차 빈칸 찾기) */
+    function buildPatternSubStage(parent, subStage) {
+      parent.classList.add('flex-col', 'justify-around');
+
+      const patterns = [
+        { sequence: ["⭐", "💖", "⭐", "💖", "?"], answer: "⭐" },
+        { sequence: ["🍀", "🍄", "🍀", "🍄", "?"], answer: "🍀" },
+        { sequence: ["👑", "💎", "👑", "💎", "?"], answer: "👑" }
+      ];
+
+      const currentPattern = patterns[(subStage - 1) % patterns.length];
+
+      const patternBar = document.createElement('div');
+      patternBar.className = "flex gap-2.5 justify-center items-center bg-white/75 p-4 rounded-2xl border-4 border-yellow-200 shadow-md text-3xl";
+      currentPattern.sequence.forEach(char => {
+        const slot = document.createElement('span');
+        slot.className = "p-2 bg-pink-100/50 rounded-lg";
+        slot.innerText = char;
+        if (char === "?") {
+          slot.className = "p-2 bg-yellow-200 rounded-lg animate-pulse text-rose-500 font-bold shadow-inner border-2 border-dashed border-rose-400";
+        }
+        patternBar.appendChild(slot);
+      });
+      parent.appendChild(patternBar);
+
+      const wrap = document.createElement('div');
+      wrap.className = "flex gap-4 justify-center";
+      parent.appendChild(wrap);
+
+      updateProgress(0, 1);
+
+      const options = ["⭐", "💖", "🍀", "🍄", "👑", "💎"].filter(o => o !== currentPattern.answer).slice(0, 2);
+      options.push(currentPattern.answer);
+      options.sort(() => Math.random() - 0.5);
+
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = "bg-white p-4 border-2 border-pink-200 rounded-full text-4xl shadow-md btn-bounce";
+        btn.innerHTML = opt;
+        btn.onclick = function() {
+          if (opt === currentPattern.answer) {
+            playSound('success');
+            createPoofEffect(patternBar.offsetLeft + 100, patternBar.offsetTop + 10, parent);
+            updateProgress(1, 1);
+            setTimeout(handleSubStageClear, 600);
+          } else {
+            playSound('fail');
+            btn.classList.add('animate-shake');
+            setTimeout(() => btn.classList.remove('animate-shake'), 400);
+            showToast("선로의 규칙 무늬가 맞지 않아요! 다시 보아요!");
+          }
+        };
+        wrap.appendChild(btn);
+      });
+
+      activeLevelRuntime = {
+        hint: function() {
+          const btns = wrap.querySelectorAll('button');
+          btns.forEach(b => {
+            if (b.innerHTML === currentPattern.answer) {
+              b.classList.add('ring-4', 'ring-teal-400');
+              setTimeout(() => b.classList.remove('ring-4', 'ring-teal-400'), 1500);
+            }
+          });
+        }
+      };
+    }
+
+    /* 5. SEQUENCE MELODY (순서 음계 암기 연주 - 사이먼 세이즈) */
+    function buildSequenceSubStage(parent, sequenceLen) {
+      const flowers = [
+        { id: 0, color: "bg-red-200", name: "빨강꽃", emoji: "🌸", freq: 261 },
+        { id: 1, color: "bg-yellow-100", name: "노랑꽃", emoji: "🌻", freq: 329 },
+        { id: 2, color: "bg-teal-200", name: "초록꽃", emoji: "🍀", freq: 392 }
+      ];
+
+      let sequence = [];
+      for (let i = 0; i < sequenceLen; i++) {
+        sequence.push(Math.floor(Math.random() * flowers.length));
+      }
+
+      const wrap = document.createElement('div');
+      wrap.className = "flex gap-4 z-10 w-full justify-center";
+      parent.appendChild(wrap);
+
+      const buttons = [];
+      flowers.forEach(fl => {
+        const btn = document.createElement('button');
+        btn.className = `${fl.color} w-20 h-24 rounded-full border-4 border-white flex flex-col justify-center items-center shadow-md btn-bounce`;
+        btn.innerHTML = `<span class="text-3xl">${fl.emoji}</span><span class="text-[10px] font-black text-gray-700 mt-1">${fl.name}</span>`;
+        btn.onclick = () => playerTap(fl.id);
+        wrap.appendChild(btn);
+        buttons.push(btn);
+      });
+
+      let step = 0;
+      updateProgress(0, sequenceLen);
+
+      function playSequence(index) {
+        if (!parent.isConnected) return;
+        if (index >= sequenceLen) {
+          showToast("이제 기억한 꽃 노랫소리 순서대로 톡톡 터치 연주해요!");
+          return;
+        }
+        setTimeout(() => {
+          if (!parent.isConnected) return;
+          highlight(sequence[index]);
+          playSequence(index + 1);
+        }, 800);
+      }
+
+      function highlight(id) {
+        const fl = flowers[id];
+        const btn = buttons[id];
+        if (!btn) return;
+        btn.classList.add('ring-4', 'ring-purple-400', 'scale-105');
+        
+        if (isSoundOn && synth) {
+          const osc = synth.createOscillator();
+          const gain = synth.createGain();
+          osc.connect(gain);
+          gain.connect(synth.destination);
+          osc.frequency.setValueAtTime(fl.freq, synth.currentTime);
+          gain.gain.setValueAtTime(0.15, synth.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, synth.currentTime + 0.35);
+          osc.start();
+          osc.stop(synth.currentTime + 0.35);
+        }
+
+        setTimeout(() => {
+          btn.classList.remove('ring-4', 'ring-purple-400', 'scale-105');
+        }, 400);
+      }
+
+      setTimeout(() => playSequence(0), 1000);
+
+      function playerTap(id) {
+        highlight(id);
+        if (id === sequence[step]) {
+          step++;
+          updateProgress(step, sequenceLen);
+          if (step === sequenceLen) {
+            setTimeout(handleSubStageClear, 600);
+          }
+        } else {
+          playSound('fail');
+          showToast("엇갈린 박자에 꽃들이 깜짝 놀랐어요! 다시 들어봐요!");
+          step = 0;
+          updateProgress(0, sequenceLen);
+          setTimeout(() => playSequence(0), 1500);
+        }
+      }
+
+      activeLevelRuntime = {
+        hint: function() {
+          if (step < sequenceLen) {
+            highlight(sequence[step]);
+          }
+        }
+      };
+    }
+
+    /* 6. MEMORY CARDS (카드 숲 짝꿍 찾기 - 기억력) */
+    function buildMemoryCardsSubStage(parent, count) {
+      const allEmojis = ['🧚‍♀️', '🧚‍♂️', '🦄', '🐿️', '🏰', '👑'];
+      const selectCount = Math.min(count, allEmojis.length);
+      const emojis = allEmojis.slice(0, selectCount);
+      let deck = [...emojis, ...emojis];
+      deck.sort(() => Math.random() - 0.5);
+
+      const grid = document.createElement('div');
+      grid.className = `grid gap-2 w-full max-w-[320px] ${selectCount > 3 ? 'grid-cols-4' : 'grid-cols-3'}`;
+      parent.appendChild(grid);
+
+      let opened = [];
+      let matched = 0;
+      updateProgress(0, selectCount);
+
+      deck.forEach((emoji, idx) => {
+        const card = document.createElement('div');
+        card.className = "flip-card h-20 cursor-pointer relative rounded-xl";
+        card.dataset.char = emoji;
+        card.innerHTML = `
+          <div class="flip-card-inner w-full h-full relative border-2 border-purple-200 rounded-xl shadow-md">
+            <div class="flip-card-back w-full h-full rounded-xl bg-white flex justify-center items-center text-2xl">${emoji}</div>
+            <div class="flip-card-front w-full h-full rounded-xl bg-gradient-to-tr from-purple-300 to-pink-200 flex justify-center items-center text-white text-2xl">🌸</div>
+          </div>
+        `;
+
+        card.onclick = function() {
+          if (card.classList.contains('flipped') || opened.length >= 2) return;
+          playSound('click');
+          card.classList.add('flipped');
+          opened.push(card);
+
+          if (opened.length === 2) {
+            const [c1, c2] = opened;
+            if (c1.dataset.char === c2.dataset.char) {
+              setTimeout(() => {
+                if (!parent.isConnected) return;
+                playSound('star');
+                c1.classList.add('opacity-40');
+                c2.classList.add('opacity-40');
+                opened = [];
+                matched++;
+                updateProgress(matched, selectCount);
+                if (matched === selectCount) {
+                  setTimeout(handleSubStageClear, 600);
+                }
+              }, 600);
+            } else {
+              setTimeout(() => {
+                if (!parent.isConnected) return;
+                c1.classList.remove('flipped');
+                c2.classList.remove('flipped');
+                opened = [];
+              }, 1100);
+            }
+          }
+        };
+        grid.appendChild(card);
+      });
+
+      activeLevelRuntime = {
+        hint: function() {
+          const cards = parent.querySelectorAll('.flip-card:not(.flipped)');
+          if (cards.length > 0) {
+            const targetChar = cards[0].dataset.char;
+            cards.forEach(c => {
+              if (c.dataset.char === targetChar) {
+                c.classList.add('flipped');
+                setTimeout(() => c.classList.remove('flipped'), 1200);
+              }
+            });
+          }
+        }
+      };
+    }
+
+    /* 7. POTION COMBINATION (가마솥 약초 레시피 배합 - 아이템 드래그) */
+    function buildCombinationSubStage(parent, count) {
+      parent.classList.add('flex-col', 'justify-around');
+
+      const ingredients = [
+        { name: "빨강 버섯", emoji: "🍄" },
+        { name: "파란 잎새", emoji: "🍀" },
+        { name: "황금 도토리", emoji: "🌰" },
+        { name: "반짝 꽃가루", emoji: "🌸" }
+      ];
+
+      let recipe = [];
+      const recipeLen = Math.min(count, 3);
+      while(recipe.length < recipeLen) {
+        const candidate = ingredients[Math.floor(Math.random() * ingredients.length)];
+        if (!recipe.includes(candidate)) recipe.push(candidate);
+      }
+
+      let recipeStr = recipe.map(r => r.emoji).join(' + ');
+      setHelper("코코링", "물약 가이드", "🐿️", `레시피 카드에 맞는 [ ${recipeStr} ] 재료만 차례로 가마솥 드래그해 섞어줘!`);
+
+      const pot = document.createElement('div');
+      pot.className = "text-8xl my-2 sparkle-element relative cursor-pointer flex justify-center items-center drop-shadow-md";
+      pot.innerHTML = "🍯";
+      parent.appendChild(pot);
+
+      const mixed = [];
+      updateProgress(0, recipeLen);
+
+      const itemsWrap = document.createElement('div');
+      itemsWrap.className = "flex gap-4 justify-center";
+      parent.appendChild(itemsWrap);
+
+      ingredients.forEach((ing, idx) => {
+        const item = document.createElement('div');
+        item.className = "draggable-item bg-white border-2 border-pink-200 p-3 rounded-full text-4xl shadow-md z-20 transition-transform duration-150";
+        item.innerHTML = ing.emoji;
+
+        // 드래그 기능 완벽 내장
+        let isDragging = false;
+        let startX, startY;
+        let elemTop, elemLeft;
+
+        function onStart(e) {
+          isDragging = true;
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+          startX = clientX;
+          startY = clientY;
+          elemTop = item.offsetTop;
+          elemLeft = item.offsetLeft;
+          e.preventDefault();
+        }
+
+        function onMove(e) {
+          if (!isDragging) return;
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+          const dx = clientX - startX;
+          const dy = clientY - startY;
+          
+          item.style.position = 'absolute';
+          item.style.top = `${elemTop + dy}px`;
+          item.style.left = `${elemLeft + dx}px`;
+        }
+
+        function onEnd() {
+          if (!isDragging) return;
+          isDragging = false;
+          
+          const itemRect = item.getBoundingClientRect();
+          const potRect = pot.getBoundingClientRect();
+
+          if (
+            itemRect.right > potRect.left &&
+            itemRect.left < potRect.right &&
+            itemRect.bottom > potRect.top &&
+            itemRect.top < potRect.bottom
+          ) {
+            if (recipe.includes(ing)) {
+              if (!mixed.includes(ing)) {
+                playSound('star');
+                createPoofEffect(pot.offsetLeft + 20, pot.offsetTop + 10, parent);
+                item.remove();
+                mixed.push(ing);
+                updateProgress(mixed.length, recipeLen);
+                if (mixed.length === recipeLen) {
+                  pot.innerHTML = "🧪✨";
+                  playSound('success');
+                  setTimeout(handleSubStageClear, 800);
+                }
+              }
+            } else {
+              playSound('fail');
+              item.style.position = 'static';
+              pot.classList.add('animate-shake');
+              setTimeout(() => pot.classList.remove('animate-shake'), 400);
+              showToast("아이쿠! 다른 약초가 들어가 마법 가마솥이 부글거려요!");
+            }
+          } else {
+            item.style.position = 'static';
+          }
+        }
+
+        item.addEventListener('mousedown', onStart);
+        item.addEventListener('touchstart', onStart, { passive: false });
+
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('touchmove', onMove, { passive: false });
+
+        window.addEventListener('mouseup', onEnd);
+        window.addEventListener('touchend', onEnd);
+
+        itemsWrap.appendChild(item);
+      });
+
+      activeLevelRuntime = {
+        hint: function() {
+          const nextTarget = recipe.find(r => !mixed.includes(r));
+          if (nextTarget) {
+            const items = itemsWrap.querySelectorAll('.draggable-item');
+            items.forEach(it => {
+              if (it.innerHTML === nextTarget.emoji) {
+                it.classList.add('ring-4', 'ring-teal-400');
+                setTimeout(() => it.classList.remove('ring-4', 'ring-teal-400'), 1500);
+              }
+            });
+          }
+        }
+      };
+    }
+
+    /* 8. SILHOUETTE REASONING (그림자 주인 추론 - 짝짓기) */
+    function buildReasoningSubStage(parent, count) {
+      parent.classList.add('flex-col', 'gap-4');
+
+      const data = [
+        { id: 1, name: "토끼", emoji: "🐰", shadow: "🐇" },
+        { id: 2, name: "여우", emoji: "🦊", shadow: "🐕" },
+        { id: 3, name: "다람쥐", emoji: "🐿️", shadow: "🐿️" }
+      ];
+
+      let selectedAnimal = null;
+      let matchedCount = 0;
+      updateProgress(0, 3);
+
+      const panel = document.createElement('div');
+      panel.className = "flex justify-around w-full max-w-[320px] bg-white/50 p-3 rounded-xl gap-2 z-10";
+      parent.appendChild(panel);
+
+      const leftCol = document.createElement('div');
+      leftCol.className = "flex flex-col gap-3";
+      const rightCol = document.createElement('div');
+      rightCol.className = "flex flex-col gap-3";
+      panel.appendChild(leftCol);
+      panel.appendChild(rightCol);
+
+      data.forEach(item => {
+        const abtn = document.createElement('button');
+        abtn.className = "bg-white p-3 border-2 border-pink-100 rounded-xl text-3xl shadow-sm btn-bounce";
+        abtn.innerHTML = item.emoji;
+        abtn.onclick = function() {
+          playSound('click');
+          selectedAnimal = item;
+          leftCol.querySelectorAll('button').forEach(b => b.classList.remove('ring-4', 'ring-pink-400'));
+          abtn.classList.add('ring-4', 'ring-pink-400');
+        };
+        leftCol.appendChild(abtn);
+      });
+
+      const shuffledShadows = [...data].sort(() => Math.random() - 0.5);
+
+      shuffledShadows.forEach(item => {
+        const sbtn = document.createElement('button');
+        sbtn.className = "bg-gray-800 text-white p-3 rounded-xl text-3xl shadow-sm btn-bounce";
+        sbtn.innerHTML = item.shadow;
+        sbtn.onclick = function() {
+          if (!selectedAnimal) {
+            showToast("먼저 왼쪽 진짜 친구 요정 동물을 먼저 선택해주세요!");
+            return;
+          }
+          if (selectedAnimal.id === item.id) {
+            playSound('star');
+            sbtn.innerHTML = item.emoji;
+            sbtn.className = "bg-pink-100 text-pink-700 p-3 rounded-xl text-3xl opacity-50 cursor-default";
+            sbtn.disabled = true;
+            
+            leftCol.querySelectorAll('button').forEach(b => {
+              if (b.innerHTML === item.emoji) {
+                b.className = "bg-green-100 p-3 rounded-xl text-3xl opacity-50 cursor-default";
+                b.disabled = true;
+              }
+            });
+
+            selectedAnimal = null;
+            matchedCount++;
+            updateProgress(matchedCount, 3);
+            if (matchedCount === 3) {
+              setTimeout(handleSubStageClear, 800);
+            }
+          } else {
+            playSound('fail');
+            sbtn.classList.add('animate-shake');
+            setTimeout(() => sbtn.classList.remove('animate-shake'), 400);
+            showToast("실루엣 그림자의 실제 모양이 일치하지 않아요!");
+          }
+        };
+        rightCol.appendChild(sbtn);
+      });
+
+      activeLevelRuntime = {
+        hint: function() {
+          if (selectedAnimal) {
+            rightCol.querySelectorAll('button').forEach(b => {
+              if (b.innerHTML === selectedAnimal.shadow) {
+                b.classList.add('ring-4', 'ring-emerald-400');
+                setTimeout(() => b.classList.remove('ring-4', 'ring-emerald-400'), 1500);
+              }
+            });
+          }
+        }
+      };
+    }
+
+    /* 9. TIMING TAP (리듬 자수정 동그라미 통과 - 타이밍 조작) */
+    function buildTimingSubStage(parent, count) {
+      parent.classList.add('flex-col');
+      
+      const gameBoard = document.createElement('div');
+      gameBoard.className = "relative w-full h-[180px] bg-slate-900 rounded-2xl overflow-hidden border-2 border-indigo-400 shadow-inner";
+      parent.appendChild(gameBoard);
+
+      const hitCircle = document.createElement('div');
+      hitCircle.className = "absolute bottom-3 left-1/2 transform -translate-x-1/2 w-14 h-14 rounded-full border-4 border-yellow-300 bg-yellow-300/20 sparkle-element";
+      gameBoard.appendChild(hitCircle);
+
+      const actionBtn = document.createElement('button');
+      actionBtn.className = "mt-3 btn-bounce w-full py-3 bg-pink-400 text-white font-black text-lg rounded-xl shadow-md";
+      actionBtn.innerText = "⭐ 보석이 판정원 안에 겹칠때 탭! ⭐";
+      parent.appendChild(actionBtn);
+
+      let pointsNeeded = Math.min(count, 5);
+      let hits = 0;
+      updateProgress(0, pointsNeeded);
+
+      let gemY = 0;
+      let animId = null;
+      let speed = gameState.difficulty === 'easy' ? 2 : (gameState.difficulty === 'normal' ? 3.2 : 4.5);
+
+      const fallingGem = document.createElement('div');
+      fallingGem.className = "absolute text-4xl left-1/2 transform -translate-x-1/2";
+      fallingGem.innerHTML = "💎";
+      gameBoard.appendChild(fallingGem);
+
+      function loop() {
+        if (!parent.isConnected) {
+          cancelAnimationFrame(animId);
+          return;
+        }
+        gemY += speed;
+        if (gemY > 180) gemY = 0;
+        fallingGem.style.top = `${gemY}px`;
+        animId = requestAnimationFrame(loop);
+      }
+      animId = requestAnimationFrame(loop);
+
+      actionBtn.onclick = function() {
+        if (gemY >= 115 && gemY <= 165) {
+          playSound('star');
+          createPoofEffect(hitCircle.offsetLeft + 15, hitCircle.offsetTop + 10, gameBoard);
+          gemY = 0; 
+          hits++;
+          updateProgress(hits, pointsNeeded);
+          if (hits >= pointsNeeded) {
+            cancelAnimationFrame(animId);
+            setTimeout(handleSubStageClear, 500);
+          } else {
+            showToast("완벽해요! 멋진 리듬 타이밍! 🌟");
+          }
+        } else {
+          playSound('fail');
+          showToast("자수정이 동그라미 중심을 통과할 때 정확히 탭하세요!");
+        }
+      };
+
+      activeLevelRuntime = {
+        hint: function() {
+          showToast("보석 사파이어가 아래 연두색 고리에 들어올 때 버튼을 정확히 누르세요!");
+        },
+        cleanup: function() {
+          if (animId) cancelAnimationFrame(animId);
+        }
+      };
+    }
+
+    /* 10. SPATIAL PUZZLE (왕국 축벽 벽돌 복원 - 공간지각 퍼즐) */
+    function buildPuzzleSubStage(parent, size) {
+      const columns = size === 4 ? "grid-cols-2" : "grid-cols-3";
+
+      const grid = document.createElement('div');
+      grid.className = `grid gap-1.5 w-full max-w-[280px] ${columns} z-10`;
+      parent.appendChild(grid);
+
+      let pieces = [];
+      for (let i = 0; i < size; i++) pieces.push(i);
+      
+      let matchedCount = 0;
+      updateProgress(0, size);
+
+      let scrambled = [...pieces].sort(() => Math.random() - 0.5);
+
+      scrambled.forEach((val, idx) => {
+        const tile = document.createElement('button');
+        tile.className = "bg-gradient-to-tr from-pink-100 to-sky-100 h-20 border-2 border-pink-300 rounded-xl text-3xl font-black flex justify-center items-center shadow-md btn-bounce";
+        tile.innerHTML = val === idx ? `⭐` : `🧩`;
+        
+        tile.onclick = function() {
+          playSound('click');
+          if (val !== idx) {
+            tile.innerHTML = `⭐`;
+            tile.className = "bg-green-100 h-20 border-2 border-green-300 rounded-xl text-3xl font-black flex justify-center items-center shadow-inner cursor-default";
+            val = idx; 
+            matchedCount++;
+            updateProgress(matchedCount, size);
+            if (matchedCount === size) {
+              setTimeout(handleSubStageClear, 500);
+            }
+          }
+        };
+        grid.appendChild(tile);
+      });
+
+      activeLevelRuntime = {
+        hint: function() {
+          const btns = grid.querySelectorAll('button');
+          let helped = false;
+          btns.forEach((b, i) => {
+            if (b.innerHTML === "🧩" && !helped) {
+              b.classList.add('ring-4', 'ring-rose-400');
+              setTimeout(() => b.classList.remove('ring-4', 'ring-rose-400'), 1500);
+              helped = true;
+            }
+          });
+        }
+      };
+    }
+
+    /* 15. FINAL SYNTHESIS (프리즘 크라운 조율 - 파이널 시험지) */
+    function buildSynthesisSubStage(parent, subStage) {
+      parent.classList.add('flex-col', 'gap-4');
+
+      const panel = document.createElement('div');
+      panel.className = "bg-white/80 border-4 border-yellow-300 rounded-2xl p-4 text-center space-y-4 max-w-[280px] z-10 shadow-lg";
+      parent.appendChild(panel);
+
+      const taskLabel = document.createElement('p');
+      taskLabel.className = "text-sm font-black text-purple-700 leading-tight";
+      panel.appendChild(taskLabel);
+
+      const btnWrap = document.createElement('div');
+      btnWrap.className = "flex justify-center gap-2.5 items-center";
+      panel.appendChild(btnWrap);
+
+      if (subStage === 1) {
+        taskLabel.innerText = "⭐ 가장 '큰' 마법 별빛 조각을 드래그가 아닌 터치해 주세요!";
+        const sizes = [
+          { name: "소", size: "text-xl", label: "⭐" },
+          { name: "중", size: "text-3xl", label: "⭐" },
+          { name: "대", size: "text-5xl", label: "⭐", isCorrect: true }
+        ].sort(() => Math.random() - 0.5);
+
+        sizes.forEach(s => {
+          const btn = document.createElement('button');
+          btn.className = `btn-bounce bg-pink-100 p-2 rounded-xl border border-pink-200 ${s.size}`;
+          btn.innerHTML = s.label;
+          btn.onclick = function() {
+            if (s.isCorrect) {
+              playSound('star');
+              setTimeout(handleSubStageClear, 500);
+            } else {
+              playSound('fail');
+              showToast("이것보다 훨씬 더 크고 아름다운 별빛 기둥이 존재해요!");
+            }
+          };
+          btnWrap.appendChild(btn);
+        });
+      } else if (subStage === 2) {
+        taskLabel.innerText = "🌈 무지개 빛깔 중 빈 칸에 들어갈 색은? [빨강 - 주황 - ? - 초록]";
+        const colors = [
+          { name: "노랑", color: "bg-yellow-400", isCorrect: true },
+          { name: "보라", color: "bg-purple-400" },
+          { name: "파랑", color: "bg-blue-400" }
+        ].sort(() => Math.random() - 0.5);
+
+        colors.forEach(c => {
+          const btn = document.createElement('button');
+          btn.className = `btn-bounce w-16 h-16 rounded-full border-4 border-white shadow-md ${c.color}`;
+          btn.onclick = function() {
+            if (c.isCorrect) {
+              playSound('star');
+              setTimeout(handleSubStageClear, 500);
+            } else {
+              playSound('fail');
+              showToast("하늘 위에 떠 있는 예쁜 무지개의 세 번째 색은 어떤 색일까요?");
+            }
+          };
+          btnWrap.appendChild(btn);
+        });
+      } else if (subStage === 3) {
+        taskLabel.innerText = "🔮 프리즘 하늘 기둥의 마법 보석 구슬 '5개'를 터치해 제자리에 복구해요!";
+        let activeGems = 0;
+        updateProgress(0, 5);
+
+        for (let i = 0; i < 5; i++) {
+          const gem = document.createElement('button');
+          gem.className = "absolute text-4xl sparkle-element btn-bounce p-2 z-20";
+          gem.style.top = `${25 + Math.random() * 50}%`;
+          gem.style.left = `${15 + Math.random() * 70}%`;
+          gem.innerHTML = "🔮";
+          gem.onclick = function() {
+            playSound('star');
+            createPoofEffect(gem.offsetLeft, gem.offsetTop, parent);
+            gem.remove();
+            activeGems++;
+            updateProgress(activeGems, 5);
+            if (activeGems >= 5) {
+              setTimeout(handleSubStageClear, 600);
+            }
+          };
+          parent.appendChild(gem);
+        }
+      }
+
+      activeLevelRuntime = {
+        hint: function() {
+          showToast("화면 속 마법 기둥 카드를 차분하게 탭해보세요!");
+        }
+      };
+    }
+
+
+    /* ========================================================
+       ★ 상설 왕국 꾸미기방 & 도감 & 퀘스트 연동 ★
+       ======================================================== */
+    function openDecoRoom() {
+      playSound('click');
+      showScreen('screen-deco');
+      
+      const stickerContainer = document.getElementById('sticker-selections');
+      stickerContainer.innerHTML = "";
+
+      stickerPool.forEach(emoji => {
+        const btn = document.createElement('button');
+        btn.className = "btn-bounce bg-white p-2.5 rounded-full shadow-md text-3xl border border-purple-200 hover:bg-purple-50";
+        btn.innerHTML = emoji;
+        btn.onclick = () => spawnSticker(emoji);
+        stickerContainer.appendChild(btn);
+      });
+
+      const board = document.getElementById('deco-board');
+      board.innerHTML = ""; 
+      gameState.decoStickers.forEach((sticker, idx) => {
+        drawStickerOnBoard(sticker.emoji, sticker.top, sticker.left, idx);
+      });
+    }
+
+    function spawnSticker(emoji) {
+      playSound('sparkle');
+      const top = 30 + Math.random() * 30;
+      const left = 30 + Math.random() * 30;
+      
+      gameState.decoStickers.push({ emoji, top, left });
+      saveGameData();
+      
+      const newIndex = gameState.decoStickers.length - 1;
+      drawStickerOnBoard(emoji, top, left, newIndex);
+    }
+
+    function drawStickerOnBoard(emoji, top, left, index) {
+      const board = document.getElementById('deco-board');
+      const sticker = document.createElement('div');
+      sticker.className = "absolute text-4xl cursor-grab active:cursor-grabbing select-none z-20 touch-none";
+      sticker.style.top = `${top}%`;
+      sticker.style.left = `${left}%`;
+      sticker.innerHTML = emoji;
+      
+      let isDragging = false;
+      let startX, startY;
+      let elemTop, elemLeft;
+
+      function onStart(e) {
+        isDragging = true;
+        sticker.classList.add('scale-110');
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        startX = clientX;
+        startY = clientY;
+        elemTop = sticker.offsetTop;
+        elemLeft = sticker.offsetLeft;
+        e.preventDefault();
+      }
+
+      function onMove(e) {
+        if (!isDragging) return;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const dx = clientX - startX;
+        const dy = clientY - startY;
+        
+        let newLeft = elemLeft + dx;
+        let newTop = elemTop + dy;
+        
+        const boardWidth = board.clientWidth;
+        const boardHeight = board.clientHeight;
+        const leftPct = (newLeft / boardWidth) * 100;
+        const topPct = (newTop / boardHeight) * 100;
+        
+        sticker.style.left = `${Math.max(0, Math.min(leftPct, 90))}%`;
+        sticker.style.top = `${Math.max(0, Math.min(topPct, 90))}%`;
+      }
+
+      function onEnd() {
+        if (!isDragging) return;
+        isDragging = false;
+        sticker.classList.remove('scale-110');
+        playSound('click');
+        
+        if (gameState.decoStickers[index]) {
+          gameState.decoStickers[index].left = parseFloat(sticker.style.left);
+          gameState.decoStickers[index].top = parseFloat(sticker.style.top);
+          saveGameData();
+        }
+      }
+
+      sticker.addEventListener('mousedown', onStart);
+      sticker.addEventListener('touchstart', onStart, { passive: false });
+
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('touchmove', onMove, { passive: false });
+
+      window.addEventListener('mouseup', onEnd);
+      window.addEventListener('touchend', onEnd);
+
+      board.appendChild(sticker);
+    }
+
+    function clearDecoBoard() {
+      playSound('click');
+      gameState.decoStickers = [];
+      saveGameData();
+      document.getElementById('deco-board').innerHTML = "";
+      showToast("마법 정원의 모든 스티커를 깨끗하게 지웠어요! 🧹");
+    }
+
+    function exitDecoRoom() {
+      playSound('click');
+      updateMapUI();
+      showScreen('screen-map');
+    }
+
+    function openStickerBook() {
+      playSound('click');
+      showScreen('screen-stickerbook');
+      const grid = document.getElementById('stickerbook-grid');
+      grid.innerHTML = "";
+
+      badgePool.forEach(badge => {
+        const hasBadge = gameState.collectedBadges.includes(badge.id);
+        const cell = document.createElement('div');
+        cell.className = `flex flex-col items-center p-3 rounded-2xl border-2 text-center ${hasBadge ? 'bg-white border-indigo-200 shadow-md' : 'bg-gray-100/50 border-gray-200 opacity-40'}`;
+        
+        cell.innerHTML = `
+          <span class="text-4xl ${hasBadge ? 'sparkle-element' : ''}">${hasBadge ? badge.emoji : '🔒'}</span>
+          <p class="text-[11px] font-black text-gray-800 mt-1.5 leading-tight">${badge.name}</p>
+          <p class="text-[9px] text-gray-400 font-bold mt-0.5">${badge.desc}</p>
+        `;
+        grid.appendChild(cell);
+      });
+    }
+
+    function openDailyQuest() {
+      playSound('click');
+      showScreen('screen-daily');
+      updateDailyQuestUI();
+    }
+
+    function updateDailyQuestUI() {
+      const q1Status = document.getElementById('daily-q1-status');
+      const q1Btn = document.getElementById('daily-q1-btn');
+      if (q1Status && q1Btn) {
+        q1Status.innerText = `진행도: ${gameState.stars} / 15`;
+        if (gameState.stars >= 15) {
+          if (gameState.dailyQuest1Claimed) {
+            q1Btn.className = "px-3 py-1 bg-gray-400 text-white text-xs font-black rounded-full cursor-default";
+            q1Btn.innerText = "수령완료";
+            q1Btn.disabled = true;
+          } else {
+            q1Btn.className = "btn-bounce px-3 py-1 bg-green-500 text-white text-xs font-black rounded-full";
+            q1Btn.innerText = "보상받기";
+            q1Btn.disabled = false;
+          }
+        } else {
+          q1Btn.className = "px-3 py-1 bg-gray-300 text-white text-xs font-black rounded-full";
+          q1Btn.innerText = "진행중";
+          q1Btn.disabled = true;
+        }
+      }
+
+      const q2Status = document.getElementById('daily-q2-status');
+      const q2Btn = document.getElementById('daily-q2-btn');
+      if (q2Status && q2Btn) {
+        const isFinished = gameState.levelCompletedTodayCount >= 1;
+        q2Status.innerText = isFinished ? "진행도: 완료" : "진행도: 미완료";
+        if (isFinished) {
+          if (gameState.dailyQuest2Claimed) {
+            q2Btn.className = "px-3 py-1 bg-gray-400 text-white text-xs font-black rounded-full cursor-default";
+            q2Btn.innerText = "수령완료";
+            q2Btn.disabled = true;
+          } else {
+            q2Btn.className = "btn-bounce px-3 py-1 bg-purple-500 text-white text-xs font-black rounded-full";
+            q2Btn.innerText = "보상받기";
+            q2Btn.disabled = false;
+          }
+        } else {
+          q2Btn.className = "px-3 py-1 bg-gray-300 text-white text-xs font-black rounded-full";
+          q2Btn.innerText = "진행중";
+          q2Btn.disabled = true;
+        }
+      }
+    }
+
+    function claimDailyReward(num) {
+      playSound('success');
+      if (num === 1) {
+        gameState.stars += 10;
+        gameState.dailyQuest1Claimed = true;
+        showToast("🎁 데일리 미션! 보너스 별 10개를 더 획득했어요!");
+      } else if (num === 2) {
+        gameState.stars += 10;
+        gameState.dailyQuest2Claimed = true;
+        showToast("🎁 데일리 미션! 보너스 별 10개를 더 획득했어요!");
+      }
+      saveGameData();
+      updateDailyQuestUI();
+    }
+
+    function showEndingCelebration() {
+      playSound('success');
+      showToast("🌈 와아! 엄마 아빠와 함께 행복한 손뼉 축제가 은하수 성에 가득해요! 🌈");
+    }
+
+    function updateProgress(current, max) {
+      const label = document.getElementById('mission-progress-label');
+      if (label) {
+        label.innerText = `진행도: ${current} / ${max}`;
+      }
+    }
+
+    window.onload = function () {
+      loadSavedData();
+      showScreen('screen-start');
+    };
+  </script>
+</body>
+</html>
